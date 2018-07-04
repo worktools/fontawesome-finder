@@ -70,7 +70,7 @@
     :style {:cursor :pointer, :font-size 10},
     :on-click (fn [e d! m!] (copy-text! code d!))})))
 
-(def icons-dict (js->clj icons))
+(def icons-dict (js->clj (.-default icons)))
 
 (defcomp
  comp-container
@@ -89,7 +89,7 @@
                :overflow :auto,
                :align-items :flex-start})}
      (->> icons-dict
-          (filter (fn [[icon-name code]] (string/includes? code (:content store))))
+          (filter (fn [[icon-name code]] (string/includes? code (or (:content store) ""))))
           (map (fn [[icon-name icon-code]] [icon-name (comp-icon icon-name icon-code)]))))
     (comp-messages
      (:messages store)

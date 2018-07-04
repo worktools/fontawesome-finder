@@ -1,5 +1,5 @@
 
-module.exports = {
+export default {
   $500px: "500px",
   AddressBook: "address-book",
   AddressBookO: "address-book-o",
