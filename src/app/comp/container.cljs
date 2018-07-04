@@ -50,24 +50,15 @@
  comp-icon
  (icon-name code)
  (div
-  {:style (merge
-           ui/center
-           {:width 120,
-            :height 120,
-            :border (str "1px solid " (hsl 0 0 98)),
-            :font-size 12,
-            :font-family ui/font-normal,
-            :color (hsl 0 0 70)})}
-  (i
-   {:style {:text-align :center, :font-size 24, :padding 8, :color :black},
-    :class-name (str "fa fa-" code)})
+  {:class-name "cell-container"}
+  (i {:class-name (str "cell-icon fa fa-" code)})
   (span
    {:inner-text icon-name,
-    :style {:cursor :pointer},
+    :class-name "cell-name",
     :on-click (fn [e d! m!] (copy-text! icon-name d!))})
   (span
    {:inner-text code,
-    :style {:cursor :pointer, :font-size 10},
+    :class-name "cell-code",
     :on-click (fn [e d! m!] (copy-text! code d!))})))
 
 (def icons-dict (js->clj (.-default icons)))
