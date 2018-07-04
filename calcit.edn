@@ -903,6 +903,13 @@
          "j" {:type :leaf, :by "root", :at 1530687147720, :text "d!", :id "Hkxmn0y9f7"}
         }
        }
+       "p" {
+        :type :expr, :by "root", :at 1530697494921, :id "rJe1XDG9fQ"
+        :data {
+         "T" {:type :leaf, :by "root", :at 1530697496398, :text "copy", :id "rJe1XDG9fQleaf"}
+         "j" {:type :leaf, :by "root", :at 1530697497579, :text "text", :id "Hke-mPz5z7"}
+        }
+       }
        "r" {
         :type :expr, :by "root", :at 1530687083028, :id "rJQ7OAyqfQ"
         :data {

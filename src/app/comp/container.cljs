@@ -42,6 +42,7 @@
     :on-input (fn [e d! m!] (d! :content (:value e)))})))
 
 (defn copy-text! [text d!]
+  (copy text)
   (let [token (.generate shortid)]
     (d! action/create {:text (str "Copied: " text), :token token})
     (js/setTimeout #(d! action/remove-one {:token token}) 2000)))
