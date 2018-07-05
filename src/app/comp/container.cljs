@@ -73,13 +73,11 @@
     (comp-header (:content store))
     (list->
      {:style (merge
-              ui/row
               ui/flex
               {:flex-wrap :wrap,
                :padding "32px 16px 80px 16px",
-               :justify-content :center,
                :overflow :auto,
-               :align-items :flex-start})}
+               :text-align :center})}
      (->> icons-dict
           (filter (fn [[icon-name code]] (string/includes? code (or (:content store) ""))))
           (map (fn [[icon-name icon-code]] [icon-name (comp-icon icon-name icon-code)]))))
