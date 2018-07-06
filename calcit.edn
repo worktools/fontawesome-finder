@@ -302,7 +302,6 @@
                   :type :expr, :by "root", :at 1530679046396, :id "ByE0bkCFzX"
                   :data {
                    "D" {:type :leaf, :by "root", :at 1530679052012, :text "merge", :id "SJXGyAFG7"}
-                   "T" {:type :leaf, :by "root", :at 1530679048415, :text "ui/row", :id "rJQRZ1CFfX"}
                    "b" {:type :leaf, :by "root", :at 1530687396248, :text "ui/flex", :id "Bkijke5fQ"}
                    "j" {
                     :type :expr, :by "root", :at 1530679052558, :id "HySfkRKf7"
@@ -322,13 +321,6 @@
                        "j" {:type :leaf, :by "root", :at 1530687458725, :text "\"32px 16px 80px 16px", :id "S1xfw9kqGm"}
                       }
                      }
-                     "v" {
-                      :type :expr, :by "root", :at 1530687260726, :id "H1SQye9MX"
-                      :data {
-                       "T" {:type :leaf, :by "root", :at 1530687265508, :text ":justify-content", :id "H1SQye9MXleaf"}
-                       "j" {:type :leaf, :by "root", :at 1530687267147, :text ":center", :id "ry5Qkg5fQ"}
-                      }
-                     }
                      "x" {
                       :type :expr, :by "root", :at 1530687386478, :id "SkeMoJg5G7"
                       :data {
@@ -337,10 +329,10 @@
                       }
                      }
                      "y" {
-                      :type :expr, :by "root", :at 1530687644628, :id "H1BillczQ"
+                      :type :expr, :by "root", :at 1530784539308, :id "rJ-Q7iPsGQ"
                       :data {
-                       "T" {:type :leaf, :by "root", :at 1530687646505, :text ":align-items", :id "H1BillczQleaf"}
-                       "j" {:type :leaf, :by "root", :at 1530687650650, :text ":flex-start", :id "HJvjgxqz7"}
+                       "T" {:type :leaf, :by "root", :at 1530784543696, :text ":text-align", :id "rJ-Q7iPsGQleaf"}
+                       "j" {:type :leaf, :by "root", :at 1530784546173, :text ":center", :id "SJluQjwifQ"}
                       }
                      }
                     }
@@ -2198,17 +2190,25 @@
                   :data {
                    "T" {:type :leaf, :author "root", :time 1499755354983, :text "[]", :id "ryROgodKcpSZ"}
                    "b" {
-                    :type :expr, :by "root", :at 1530688621833, :id "HyLONlqf7"
+                    :type :expr, :by "root", :at 1530784192746, :id "r1F6KDsf7"
                     :data {
-                     "D" {:type :leaf, :by "root", :at 1530688623527, :text "str", :id "ByPdVlqf7"}
-                     "L" {
-                      :type :expr, :by "root", :at 1530688637521, :id "SJUFEgqfm"
+                     "D" {:type :leaf, :by "root", :at 1530784194406, :text "if", :id "SJ9pYwjfm"}
+                     "L" {:type :leaf, :by "root", :at 1530784202235, :text "local-bundle?", :id "ByjTtvsMX"}
+                     "P" {:type :leaf, :by "root", :at 1530784204380, :text "\"./fontawesome/css/font-awesome.css", :id "rJeVCKvofX"}
+                     "T" {
+                      :type :expr, :by "root", :at 1530688621833, :id "HyLONlqf7"
                       :data {
-                       "T" {:type :leaf, :by "root", :at 1530688640038, :text ":cdn-url", :id "Sy9d4xcMQ"}
-                       "j" {:type :leaf, :by "root", :at 1530688648495, :text "config/site", :id "HJFtEg9fm"}
+                       "D" {:type :leaf, :by "root", :at 1530688623527, :text "str", :id "ByPdVlqf7"}
+                       "L" {
+                        :type :expr, :by "root", :at 1530688637521, :id "SJUFEgqfm"
+                        :data {
+                         "T" {:type :leaf, :by "root", :at 1530688640038, :text ":cdn-url", :id "Sy9d4xcMQ"}
+                         "j" {:type :leaf, :by "root", :at 1530688648495, :text "config/site", :id "HJFtEg9fm"}
+                        }
+                       }
+                       "T" {:type :leaf, :by "root", :at 1530688651873, :text "\"fontawesome/css/font-awesome.css", :id "ryliAGAtMQ"}
                       }
                      }
-                     "T" {:type :leaf, :by "root", :at 1530688651873, :text "\"fontawesome/css/font-awesome.css", :id "ryliAGAtMQ"}
                     }
                    }
                    "j" {

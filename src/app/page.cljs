@@ -33,7 +33,9 @@
      html-content
      (merge
       base-info
-      {:styles [(str (:cdn-url config/site) "fontawesome/css/font-awesome.css")
+      {:styles [(if local-bundle?
+                  "./fontawesome/css/font-awesome.css"
+                  (str (:cdn-url config/site) "fontawesome/css/font-awesome.css"))
                 (:release-ui config/site)],
        :scripts (map #(-> % :output-name prefix-cdn) assets),
        :ssr "respo-ssr",
