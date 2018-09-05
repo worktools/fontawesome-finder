@@ -32,7 +32,11 @@
   (.addEventListener
    js/window
    "beforeunload"
-   (fn [] (.setItem js/localStorage (:storage config/site) (pr-str (:store @*reel)))))
+   (fn []
+     (.setItem
+      js/localStorage
+      (:storage config/site)
+      (pr-str (dissoc (:store @*reel) :content)))))
   (let [raw (.getItem js/localStorage (:storage config/site))]
     (if (some? raw) (do (dispatch! :hydrate-storage (read-string raw)))))
   (println "App started."))
