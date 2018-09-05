@@ -26,7 +26,8 @@
             ["shortid" :as shortid]
             [clojure.string :as string]
             [respo-message.comp.messages :refer [comp-messages]]
-            [respo-message.action :as action]))
+            [respo-message.action :as action]
+            ["fuzzy" :as fuzzy]))
 
 (defcomp
  comp-header
@@ -79,7 +80,7 @@
                :overflow :auto,
                :text-align :center})}
      (->> icons-dict
-          (filter (fn [[icon-name code]] (string/includes? code (or (:content store) ""))))
+          (filter (fn [[icon-name code]] (fuzzy/test (or (:content store) "") code)))
           (map (fn [[icon-name icon-code]] [icon-name (comp-icon icon-name icon-code)]))))
     (comp-messages
      (:messages store)
