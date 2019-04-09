@@ -1,5 +1,5 @@
 
-{:source-paths ["src" "cli"]
+{:source-paths ["src" "cli" "js"]
  :cache-blockers #{cumulo-util.build}
  :dependencies [[mvc-works/hsl          "0.1.2"]
                 [mvc-works/shell-page   "0.1.10"]
@@ -25,16 +25,12 @@
                    :modules {:client {:init-fn app.main/main!}}
                    :devtools {:after-load app.main/reload!}
                    :compiler-options {:infer-externs :auto}
-                   :js-options {:resolve {"icons" {:target :file
-                                                   :file "entry/icons.js"}}}
                    :release {:output-dir "dist/"
                              :module-hash-names 8
                              :build-options {:manifest-name "assets.edn"}}}
           :page {:target :node-script
                  :output-to "target/page.js"
                  :main app.page/main!
-                 :js-options {:resolve {"icons" {:target :file
-                                                 :file "entry/icons.js"}}}
                  :devtools {:after-load app.page/main!}}
           :upload {:target :node-script
                    :output-to "target/upload.js"

@@ -20,7 +20,7 @@
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
             [app.config :refer [dev?]]
-            ["icons" :as icons]
+            ["../../icons" :as icons]
             ["copy-text-to-clipboard" :as copy]
             ["shortid" :as shortid]
             [clojure.string :as string]
@@ -62,7 +62,7 @@
     :class-name "cell-code",
     :on-click (fn [e d! m!] (copy-text! code d!))})))
 
-(def icons-dict (js->clj (or (.-default icons) icons)))
+(def icons-dict (js->clj icons))
 
 (defcomp
  comp-container
