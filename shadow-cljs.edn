@@ -1,25 +1,29 @@
 
 {:source-paths ["src" "cli"]
+ :cache-blockers #{cumulo-util.build}
  :dependencies [[mvc-works/hsl          "0.1.2"]
-                [mvc-works/verbosely    "0.1.2"]
-                [mvc-works/keycode      "0.1.3"]
-                [mvc-works/shell-page   "0.1.8"]
-                [respo                  "0.8.20"]
-                [respo/ui               "0.3.7"]
-                [respo/alerts           "0.2.5"]
-                [respo/message          "0.3.3"]
-                [respo/value            "0.2.4"]
-                [respo/markdown         "0.2.1"]
-                [respo/reel             "0.3.2"]]
+                [mvc-works/shell-page   "0.1.10"]
+                [respo                  "0.10.11"]
+                [respo/ui               "0.3.10"]
+                [respo/alerts           "0.3.11"]
+                [respo/value            "0.2.5"]
+                [respo/markdown         "0.2.4"]
+                [respo/feather          "0.1.1"]
+                [respo/reel             "0.3.4"]
+                [respo/message          "0.3.4"]
+                [cumulo/util            "0.1.7"]
+                [org.clojure/core.incubator "0.1.4"]]
+ :repositories {"central" {:url "https://maven.aliyun.com/nexus/content/groups/public/"}
+                "clojars" {:url "https://mirrors.ustc.edu.cn/clojars/"}
+                "maven-central" {:url "https://repo1.maven.org/maven2/"}
+                "clojars-default" {:url "https://clojars.org/repo"}}
  :open-file-command ["subl" ["%s:%s:%s" :file :line :column]]
- :socket-repl {:port 0}
+ :dev-http {7000 "target/"}
  :builds {:client {:target :browser
                    :output-dir "target/"
                    :asset-path "./"
-                   :modules {:main {:entries [app.main]}}
-                   :devtools {:after-load app.main/reload!
-                              :http-root "target"
-                              :http-port 7000}
+                   :modules {:client {:init-fn app.main/main!}}
+                   :devtools {:after-load app.main/reload!}
                    :compiler-options {:infer-externs :auto}
                    :js-options {:resolve {"icons" {:target :file
                                                    :file "entry/icons.js"}}}
@@ -31,4 +35,8 @@
                  :main app.page/main!
                  :js-options {:resolve {"icons" {:target :file
                                                  :file "entry/icons.js"}}}
-                 :devtools {:after-load app.page/main!}}}}
+                 :devtools {:after-load app.page/main!}}
+          :upload {:target :node-script
+                   :output-to "target/upload.js"
+                   :main app.upload/main!
+                   :devtools {:after-load app.upload/main!}}}}

@@ -1,5 +1,5 @@
 
-export default {
+module.exports = {
   $500px: "500px",
   AddressBook: "address-book",
   AddressBookO: "address-book-o",
@@ -786,4 +786,4 @@ export default {
   Youtube: "youtube",
   YoutubePlay: "youtube-play",
   YoutubeSquare: "youtube-square"
-}
+};

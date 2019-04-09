@@ -2,7 +2,7 @@
 (ns app.comp.container
   (:require [hsl.core :refer [hsl]]
             [respo-ui.core :as ui]
-            [respo.macros
+            [respo.core
              :refer
              [defcomp
               cursor->
@@ -16,7 +16,6 @@
               span
               input
               i]]
-            [verbosely.core :refer [verbosely!]]
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
@@ -63,7 +62,7 @@
     :class-name "cell-code",
     :on-click (fn [e d! m!] (copy-text! code d!))})))
 
-(def icons-dict (js->clj (.-default icons)))
+(def icons-dict (js->clj (or (.-default icons) icons)))
 
 (defcomp
  comp-container
