@@ -22,4 +22,4 @@
    :title "Fontawesome Finder",
    :icon "http://cdn.tiye.me/logo/mvc-works.png",
    :storage-key "fontawesome-finder",
-   :upload-folder "tiye.me:repo/chenyong/fontawesome-finder/"})
+   :upload-folder "tiye.me:repo/jimengio/fontawesome-finder/"})

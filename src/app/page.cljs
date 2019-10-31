@@ -40,7 +40,8 @@
                 (:release-ui config/site)],
        :scripts (map #(-> % :output-name prefix-cdn) assets),
        :ssr "respo-ssr",
-       :inline-styles [(slurp "./entry/main.css")]}))))
+       :inline-styles [(slurp "./entry/main.css")],
+       :append-html (slurp "./entry/ga.html")}))))
 
 (defn main! []
   (println "Running mode:" (if config/dev? "dev" "release"))
