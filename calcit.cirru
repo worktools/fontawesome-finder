@@ -25,8 +25,23 @@
                     decode-map-as
                       -> icons-dict (to-pairs) (&set:to-list)
                       :: 'List $ :: 'List 'String
-                    (filter (fn (pair) (hint-fn ({} (:args ([] (:: 'List 'String))) (:return 'Bool) (:features (#{} :js-ffi)))) (decode-map-as (fuzzy/test (:content store) (option:unwrap (nth pair 1))) 'Bool)))
-                    (map (fn (pair) (hint-fn ({} (:args ([] (:: 'List 'String))) (:return (:: 'List 'Dynamic)))) (let ((icon-name (option:unwrap (nth pair 0))) (code (option:unwrap (nth pair 1)))) ([] icon-name (comp-icon icon-name code)))))
+                    filter $ fn (pair)
+                      hint-fn $ {}
+                        :args $ [] $ :: 'List 'String
+                        :return 'Bool
+                        :features $ #{} :js-ffi
+                      decode-map-as
+                        fuzzy/test (:content store)
+                          option:unwrap $ nth pair 1
+                        , 'Bool
+                    map $ fn (pair)
+                      hint-fn $ {}
+                        :args $ [] $ :: 'List 'String
+                        :return $ :: 'List 'Dynamic
+                      let
+                          icon-name $ option:unwrap $ nth pair 0
+                          code $ option:unwrap $ nth pair 1
+                        [] icon-name $ comp-icon icon-name code
                 comp-messages (:messages store)
                   {} $ :bottom? false
                   fn (info d!)
