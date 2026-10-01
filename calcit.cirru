@@ -254,9 +254,13 @@
           :schema $ :: 'StructDef
         'decode-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-store (data)
-            match (try-decode-map-as data Store)
-              (:ok stored) (%some stored)
-              (:err _) (%none)
+            if (struct? data)
+              if (&struct:matches? data Store)
+                %some $ assert-type data 'app.schema/Store
+                %none
+              match (try-decode-map-as data Store)
+                (:ok stored) (%some stored)
+                (:err _) (%none)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic
