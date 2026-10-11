@@ -36,11 +36,12 @@ jobs:
       with:
         tools: calcit,caps
         caps-version: "0.1.1"
+        version: "0.29.0"
 
     - name: Install dependencies
       run: |
         set -euo pipefail
-        caps --ci
+        caps --strict --ci
         yarn install --immutable
         caps verify --toolchain
 
@@ -49,10 +50,8 @@ jobs:
         set -euo pipefail
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
-        calcit calcit.cirru --check-only
-        calcit calcit.cirru analyze check-public \
-          --ns app.comp.container --ns app.config --ns app.main \
-          --ns app.schema --ns app.updater --summary-only --format json
+        calcit --check-only --all-defs
+        calcit analyze weak-types --only deprecated-call --summary-only --format json | jq -e '.data.summary.calls == 0'
 
     - name: Select frontend CDN path
       id: asset-path

@@ -171,7 +171,7 @@
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             render-app!
-            add-watch *reel :changes $ fn (r p) (render-app!)
+            add-watch! *reel :changes $ fn (r p) (render-app!)
             listen-devtools! |a dispatch!
             set-before-unload! $ fn (event) (persist-storage!)
             match
@@ -190,9 +190,9 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            option:unwrap $ query-selector |.app
+            narrow-element $ option:unwrap $ query-selector |.app
           :examples $ []
-          :schema $ :: 'js-ffi.browser/DomElementHost
+          :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
@@ -205,8 +205,8 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (remove-watch *reel :changes) (clear-cache!)
-                add-watch *reel :changes $ fn (reel prev) (render-app!)
+              do (remove-watch! *reel :changes) (clear-cache!)
+                add-watch! *reel :changes $ fn (reel prev) (render-app!)
                 reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
@@ -240,6 +240,7 @@
             |bottom-tip :default hud!
             js-ffi.shared :refer $ [] date-now-snapshot
             js-ffi.browser :refer $ [] query-selector set-before-unload! storage-get storage-set!
+            respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
@@ -256,11 +257,11 @@
           :code $ quote $ defn decode-store (data)
             if (struct? data)
               if (&struct:matches? data Store)
-                %some $ assert-type data 'app.schema/Store
-                %none
+                Option :some $ assert-type data 'app.schema/Store
+                Option :none
               match (try-decode-map-as data Store)
-                (:ok stored) (%some stored)
-                (:err _) (%none)
+                (:ok stored) (Option :some stored)
+                (:err _) (Option :none)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic
