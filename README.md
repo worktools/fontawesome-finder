@@ -8,7 +8,7 @@ Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
 ### Development
 
-Use Calcit/procs 0.29.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
+Use Calcit/procs 0.30.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
 Canonical source/dependencies are `calcit.cirru` and `deps.cirru`; compact/package
 snapshots are retired. Edit Calcit through the CLI.
 
@@ -17,16 +17,31 @@ caps --strict --ci
 yarn install --immutable
 caps verify --toolchain
 calcit --check-only --all-defs
+calcit test --require-match --summary-only --format json
 calcit calcit.cirru js
 yarn vite
 ```
 
 For live source edits, run `calcit calcit.cirru js --watch` alongside Vite.
 The app uses typed Store/Op and typed Reel; clipboard messages still expire after
-two seconds. Calcit modules use stable releases, including Respo Message 0.0.33
-with the message type-contract fix; no commit-pinned dependency is required.
+two seconds. Calcit modules use stable releases: Respo 0.16.120, UI 0.7.39,
+Reel 0.6.36, Message 0.0.34 and JS-FFI 0.2.3; no commit-pinned dependency is required.
 Persisted input is decoded at `decode-store`; its Dynamic input is an intentional
 EDN boundary, while successful decoding returns `Option<Store>`.
+
+0.30 迁移保留搜索、图标、存储 key/格式与消息两秒定时器。复制事件声明实际的
+Enum dispatcher / Unit 合同；状态树结果使用 Map 解码而非类型断言。
+`require-op` 在应用边界验证四种操作，复用原 `decode-store` 保留已有 Store payload，
+不对整个 Enum 的已类型化 Struct payload 再解码。无效操作会明确报错，
+不会作为伪造的 nominal Op 写入 Reel 历史。一个附带回归覆盖这四种有效操作。
+清理三个 namespace 的旧 import `[]`，移除旧 runtime 的 npm 年龄例外，
+不新增验证脚本、框架、编译器规则、预算或 COS 配置。
+
+全部定义和公开定义、操作边界测试及浏览器回归通过。完整
+`calcit fix --workflow strict --verify` 仍失败于正式 Reel 0.6.36 的
+`reel.comp.records/comp-records` List 输入证明；不把普通检查通过称为整体 strict
+通过，暂不合并部署。尚未执行旧 0.29.0 CLI 本地基线，旧精确 main 的成功 CI
+与当前 0.30.0 控制组/候选对比会分开记录。
 
 ### Deployment
 
