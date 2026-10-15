@@ -25,7 +25,7 @@ yarn vite
 For live source edits, run `calcit calcit.cirru js --watch` alongside Vite.
 The app uses typed Store/Op and typed Reel; clipboard messages still expire after
 two seconds. Calcit modules use stable releases: Respo 0.16.120, UI 0.7.39,
-Reel 0.6.36, Message 0.0.34 and JS-FFI 0.2.3; no commit-pinned dependency is required.
+Reel 0.6.36, Message 0.0.35 and JS-FFI 0.2.3; no commit-pinned dependency is required.
 Persisted input is decoded at `decode-store`; its Dynamic input is an intentional
 EDN boundary, while successful decoding returns `Option<Store>`.
 
