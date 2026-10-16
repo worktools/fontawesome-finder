@@ -229,13 +229,16 @@
                 reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel) dispatch!
+            render! mount-target (comp-container @*reel)
+              fn (op)
+                if (enum? op) (dispatch! op) (raise "|render dispatch expected an Enum operation")
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []

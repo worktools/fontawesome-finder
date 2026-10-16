@@ -51,6 +51,7 @@ jobs:
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
         calcit --check-only --all-defs
+        calcit fix --workflow strict --verify
         calcit test --require-match --summary-only --format json
         calcit analyze weak-types --only deprecated-call --summary-only --format json | jq -e '.data.summary.calls == 0'
 

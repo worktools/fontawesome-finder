@@ -17,15 +17,16 @@ caps --strict --ci
 yarn install --immutable
 caps verify --toolchain
 calcit --check-only --all-defs
+calcit fix --workflow strict --verify
 calcit test --require-match --summary-only --format json
 calcit calcit.cirru js
 yarn vite
 ```
 
-For live source edits, run `calcit calcit.cirru js --watch` alongside Vite.
+For live source edits, run `calcit -w calcit.cirru` alongside Vite.
 The app uses typed Store/Op and typed Reel; clipboard messages still expire after
-two seconds. Calcit modules use stable releases: Respo 0.16.120, UI 0.7.39,
-Reel 0.6.36, Message 0.0.35 and JS-FFI 0.2.3; no commit-pinned dependency is required.
+two seconds. Calcit modules use stable releases: Respo 0.16.120, UI 0.7.40,
+Reel 0.6.38, Message 0.0.35 and JS-FFI 0.2.3; no commit-pinned dependency is required.
 Persisted input is decoded at `decode-store`; its Dynamic input is an intentional
 EDN boundary, while successful decoding returns `Option<Store>`.
 
@@ -37,11 +38,12 @@ Enum dispatcher / Unit 合同；状态树结果使用 Map 解码而非类型断�
 清理三个 namespace 的旧 import `[]`，移除旧 runtime 的 npm 年龄例外，
 不新增验证脚本、框架、编译器规则、预算或 COS 配置。
 
-全部定义和公开定义、操作边界测试及浏览器回归通过。完整
-`calcit fix --workflow strict --verify` 仍失败于正式 Reel 0.6.36 的
-`reel.comp.records/comp-records` List 输入证明；不把普通检查通过称为整体 strict
-通过，暂不合并部署。尚未执行旧 0.29.0 CLI 本地基线，旧精确 main 的成功 CI
-与当前 0.30.0 控制组/候选对比会分开记录。
+正式 Reel 0.6.38 已解除旧版本的 List 输入证明阻塞。渲染器的开放输入先检查
+Enum 再调用应用 dispatcher；reload 执行 HUD 副作用后明确返回 Unit。
+全部定义、完整 strict/preflight、原操作边界测试及 JS 构建通过。
+此前 Message 升级已执行搜索、复制提示、定时清理和持久化浏览器回归；本次
+依赖更新不把此前浏览器结果算作重新验收。尚未执行旧 0.29.0 CLI 本地基线，
+旧精确 main 的成功 CI 与当前 0.30.0 控制组/候选对比分开记录。
 
 ### Deployment
 
