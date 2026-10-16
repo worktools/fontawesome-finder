@@ -76,9 +76,27 @@
               {} $ :class-name |cell-container
               create-element :i $ {} $ :class-name (str "|cell-icon fa fa-" code)
               span $ {} (:inner-text icon-name) (:class-name |cell-name)
-                :on-click $ fn (e d!) (copy-text! icon-name d!)
+                :on-click $ fn (e d!)
+                  hint-fn $ {}
+                    :args $ [] (:: 'Map 'Tag 'Dynamic)
+                      :: 'Fn $ {}
+                        :args $ [] 'Enum
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                    :return 'Unit
+                    :features $ #{} :js-ffi
+                  copy-text! icon-name d!
               span $ {} (:inner-text code) (:class-name |cell-code)
-                :on-click $ fn (e d!) (copy-text! code d!)
+                :on-click $ fn (e d!)
+                  hint-fn $ {}
+                    :args $ [] (:: 'Map 'Tag 'Dynamic)
+                      :: 'Fn $ {}
+                        :args $ [] 'Enum
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                    :return 'Unit
+                    :features $ #{} :js-ffi
+                  copy-text! code d!
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'String 'String
@@ -99,7 +117,8 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'String $ :: 'Fn
               {} (:return 'Unit)
-                :args $ [] 'Dynamic
+                :args $ [] 'Enum
+                :features $ #{} :js-ffi
             :features $ #{} :js-ffi
         'icons-dict $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def icons-dict (load-icons)
@@ -116,16 +135,16 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
-            respo.util.format :refer $ [] hsl
-            respo.core :refer $ [] defcomp >> list-> <> div span input create-element
-            respo.comp.space :refer $ [] =<
-            reel.comp.reel :refer $ [] comp-typed-reel
-            app.config :refer $ [] dev?
+            respo.util.format :refer $ hsl
+            respo.core :refer $ defcomp >> list-> <> div span input create-element
+            respo.comp.space :refer $ =<
+            reel.comp.reel :refer $ comp-typed-reel
+            app.config :refer $ dev?
             app.schema :as schema
             |../js/icons.js :default icons
             |copy-text-to-clipboard :default copy
             |shortid :as shortid
-            respo-message.comp.messages :refer $ [] comp-messages
+            respo-message.comp.messages :refer $ comp-messages
             respo-message.action :as action
             |fuzzy :as fuzzy
     'app.config $ %{} 'FileEntry
@@ -150,7 +169,7 @@
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reel (typed/new-reel schema/store)
+          :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
           :schema $ :: 'Ref $ :: 'reel.typed/State 'app.schema/Op 'app.schema/Store
         'dispatch! $ %{} 'CodeEntry (:doc |)
@@ -160,7 +179,7 @@
               (:some control)
                 reset! *reel $ typed/apply-control updater @*reel control
               (:none)
-                reset! *reel $ typed/record-op updater @*reel (assert-type op 'app.schema/Op) (generate-id!)
+                reset! *reel $ typed/record-op updater @*reel (schema/require-op op) (generate-id!)
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
@@ -210,13 +229,16 @@
                 reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel) dispatch!
+            render! mount-target (comp-container @*reel)
+              fn (op)
+                if (enum? op) (dispatch! op) (raise "|render dispatch expected an Enum operation")
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -229,17 +251,17 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ [] render! clear-cache!
-            app.comp.container :refer $ [] comp-container
-            app.updater :refer $ [] updater
+            respo.core :refer $ render! clear-cache!
+            app.comp.container :refer $ comp-container
+            app.updater :refer $ updater
             app.schema :as schema
-            reel.util :refer $ [] listen-devtools!
+            reel.util :refer $ listen-devtools!
             reel.typed :as typed
             app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
-            js-ffi.shared :refer $ [] date-now-snapshot
-            js-ffi.browser :refer $ [] query-selector set-before-unload! storage-get storage-set!
+            js-ffi.shared :refer $ date-now-snapshot
+            js-ffi.browser :refer $ query-selector set-before-unload! storage-get storage-set!
             respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
@@ -266,6 +288,41 @@
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic
             :return $ :: 'Option 'app.schema/Store
+        'require-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn require-op (op)
+            match op
+              (:states cursor state)
+                Op :states
+                  decode-map-as cursor $ :: 'List 'Dynamic
+                  , state
+              (:content text)
+                Op :content $ decode-map-as text 'String
+              (:hydrate-storage data)
+                match (decode-store data)
+                  (:some stored) (Op :hydrate-storage stored)
+                  (:none)
+                    raise "|Expected valid Store in :hydrate-storage operation"
+              (:message tag data)
+                Op :message (decode-map-as tag 'Tag)
+                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
+              _ $ raise "|Unknown application operation"
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'app.schema/Op)
+            :args $ [] 'Enum
+          :tests $ [] $ %{} 'TestEntry (:name |preserves-valid-operation-payloads)
+            :code $ quote $ do
+              assert=
+                Op :states ([] :query) |state
+                require-op $ Op :states ([] :query) |state
+              assert= (Op :content |query)
+                require-op $ Op :content |query
+              assert= (Op :hydrate-storage store)
+                require-op $ Op :hydrate-storage store
+              assert=
+                Op :message :message/create $ {} $ :text |copied
+                require-op $ Op :message :message/create $ {} (:text |copied)
+              , &unit
+            :tags $ #{} :regression
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             Store :states ({}) :content | :messages $ {}
@@ -279,7 +336,7 @@
           :code $ quote $ defn updater (store op op-id op-time)
             match op
               (:states cursor state)
-                assoc store :states $ assert-type
+                assoc store :states $ decode-map-as
                   update-state-tree (:states store) cursor state
                   , 'Map
               (:content content) (assoc store :content content)
@@ -295,5 +352,5 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
-            respo.cursor :refer $ [] update-state-tree
-            respo-message.updater :refer $ [] update-messages
+            respo.cursor :refer $ update-state-tree
+            respo-message.updater :refer $ update-messages
