@@ -38,27 +38,12 @@ jobs:
         caps-version: "0.1.1"
         deps-file: deps.cirru
 
-    # Temporary pre-release consumer fixture; restore normal Caps after Message 0.0.38 is published.
-    - name: Validate unreleased Message consumer graph
+    - name: Install dependencies
       run: |
         set -euo pipefail
-        test "$GITHUB_EVENT_NAME" = "pull_request"
-        mkdir -p .calcit/modules
-        while read -r repository ref module; do
-          mkdir -p ".calcit/modules/$module"
-          curl --fail --silent --show-error --location --retry 2 \
-            "https://api.github.com/repos/$repository/tarball/$ref" \
-            | tar -xz --strip-components=1 -C ".calcit/modules/$module"
-        done <<'MODULES'
-        Respo/respo.calcit 0.16.124 respo.calcit
-        Respo/respo-ui.calcit 0.8.0 respo-ui.calcit
-        Respo/reel.calcit 0.6.41 reel.calcit
-        Respo/respo-message.calcit cf1fd2290c954fec54b1a44137ae9e0414ff27fe respo-message.calcit
-        calcit-lang/js-ffi 0.2.5 js-ffi
-        Respo/respo-router.calcit 0.8.37 respo-router.calcit
-        MODULES
+        caps --strict --ci
         yarn install --immutable
-        test "$(calcit --version)" = "0.30.1"
+        caps verify --toolchain
 
     - name: Validate source and types
       run: |
