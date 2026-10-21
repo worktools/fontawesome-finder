@@ -38,12 +38,27 @@ jobs:
         caps-version: "0.1.1"
         deps-file: deps.cirru
 
-    - name: Install dependencies
+    # Temporary pre-release consumer fixture; restore normal Caps after Message 0.0.38 is published.
+    - name: Validate unreleased Message consumer graph
       run: |
         set -euo pipefail
-        caps --strict --ci
+        test "$GITHUB_EVENT_NAME" = "pull_request"
+        mkdir -p .calcit/modules
+        while read -r repository ref module; do
+          mkdir -p ".calcit/modules/$module"
+          curl --fail --silent --show-error --location --retry 2 \
+            "https://api.github.com/repos/$repository/tarball/$ref" \
+            | tar -xz --strip-components=1 -C ".calcit/modules/$module"
+        done <<'MODULES'
+        Respo/respo.calcit 0.16.124 respo.calcit
+        Respo/respo-ui.calcit 0.8.0 respo-ui.calcit
+        Respo/reel.calcit 0.6.41 reel.calcit
+        Respo/respo-message.calcit cf1fd2290c954fec54b1a44137ae9e0414ff27fe respo-message.calcit
+        calcit-lang/js-ffi 0.2.5 js-ffi
+        Respo/respo-router.calcit 0.8.37 respo-router.calcit
+        MODULES
         yarn install --immutable
-        caps verify --toolchain
+        test "$(calcit --version)" = "0.30.1"
 
     - name: Validate source and types
       run: |
@@ -62,10 +77,11 @@ jobs:
       run: |
         if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
           prefix="${GITHUB_REPOSITORY}/pr/${PR_NUMBER}/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}/"
+          base_url="./"
         else
           prefix="${GITHUB_REPOSITORY}/"
+          base_url="https://cos-sh.tiye.me/${prefix}"
         fi
-        base_url="https://cos-sh.tiye.me/${prefix}"
         echo "VITE_BASE_URL=${base_url}" >> "$GITHUB_ENV"
         echo "prefix=${prefix}" >> "$GITHUB_OUTPUT"
         echo "base-url=${base_url}" >> "$GITHUB_OUTPUT"
@@ -75,6 +91,15 @@ jobs:
         set -euo pipefail
         calcit calcit.cirru js
         yarn vite build --base="$VITE_BASE_URL"
+
+    - name: Save PR frontend for isolated acceptance
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: frontend-${{ github.run_id }}-${{ github.run_attempt }}
+        path: dist
+        if-no-files-found: error
+        retention-days: 3
 
     - name: Check current production revision
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
