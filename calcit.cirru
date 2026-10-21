@@ -189,10 +189,6 @@
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
-            render-app!
-            add-watch! *reel :changes $ fn (r p) (render-app!)
-            listen-devtools! |a dispatch!
-            set-before-unload! $ fn (event) (persist-storage!)
             match
               storage-get $ option:unwrap $ get config/site :storage-key
               (:some raw)
@@ -200,8 +196,12 @@
                   schema/decode-store $ parse-cirru-edn raw
                   (:some stored)
                     dispatch! $ schema/Op :hydrate-storage stored
-                  (:none) (hud! |error "|Ignored invalid saved state")
+                  (:none) (raise |Invalid-saved-state)
               (:none) &unit
+            render-app!
+            add-watch! *reel :changes $ fn (r p) (render-app!)
+            listen-devtools! |a dispatch!
+            set-before-unload! $ fn (event) (persist-storage!)
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
