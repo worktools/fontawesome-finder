@@ -14,7 +14,8 @@ Message 0.0.38、js-ffi 0.2.5，传递 Router 0.8.37；不使用 alpha/hash 模�
 通知两秒生命周期保持；UI 0.8 基础样式可能改变外观。Message 已知长文本裁切问题
 仍见 [#53](https://github.com/Respo/respo-message.calcit/issues/53)，不宣称本轮已修复。
 存档恢复先于首次渲染及保存注册；解析或 Store 解码失败会中断启动，避免原先忽略错误后
-退出时用初始状态覆盖原值。遇错应先备份并修复存档，不要清空数据，见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
+退出时用初始状态覆盖原值。Store 解码失败会先通过 JS 引入的 `hud!` 显示页面错误，
+再中断启动；异常不替代 HUD。遇错应先备份并修复存档，不要清空数据，见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
 
 ### Development
 

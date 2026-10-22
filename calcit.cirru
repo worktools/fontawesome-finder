@@ -196,7 +196,8 @@
                   schema/decode-store $ parse-cirru-edn raw
                   (:some stored)
                     dispatch! $ schema/Op :hydrate-storage stored
-                  (:none) (raise |Invalid-saved-state)
+                  (:none)
+                    do (hud! |error |Invalid-saved-state) (raise |Invalid-saved-state)
               (:none) &unit
             render-app!
             add-watch! *reel :changes $ fn (r p) (render-app!)
