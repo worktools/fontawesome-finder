@@ -16,11 +16,11 @@
                 store $ :store reel
                 states $ :states store
               div
-                {} $ :style $ merge ui/global ui/fullscreen ui/column
+                {} $ :style $ .merge ui/global ui/fullscreen ui/column
                 comp-header $ :content store
                 list->
-                  {} $ :style $ merge ui/flex
-                    {} (:flex-wrap :wrap) (:padding "|32px 16px 80px 16px") (:overflow :auto) (:text-align :center)
+                  {} $ :style $ .merge ui/flex
+                    {} (:flex-wrap |wrap) (:padding "|32px 16px 80px 16px") (:overflow |auto) (:text-align |center)
                   ->
                     decode-map-as
                       -> icons-dict (to-pairs) (&set:to-list)
@@ -32,20 +32,24 @@
                         :features $ #{} :js-ffi
                       decode-map-as
                         fuzzy/test (:content store)
-                          option:unwrap $ nth pair 1
+                          .unwrap $ nth pair 1
                         , 'Bool
                     map $ fn (pair)
                       hint-fn $ {}
                         :args $ [] $ :: 'List 'String
                         :return $ :: 'List 'Dynamic
                       let
-                          icon-name $ option:unwrap $ nth pair 0
-                          code $ option:unwrap $ nth pair 1
+                          icon-name $ .unwrap $ nth pair 0
+                          code $ .unwrap $ nth pair 1
                         [] icon-name $ comp-icon icon-name code
                 comp-messages (:messages store)
                   {} $ :bottom? false
                   fn (info d!)
-                    d! $ schema/Op :message action/remove-one $ decode-map-as info (:: 'Map 'Tag 'Dynamic)
+                    hint-fn $ {} (:return 'Unit)
+                      :args $ [] (:: 'Map 'Tag 'Dynamic)
+                        :: 'Fn $ {} (:rest 'Dynamic) (:return 'Unit)
+                          :args $ [] 'Dynamic
+                    d! $ schema/Op :message action/remove-one info
                 when dev? $ comp-typed-reel (>> states :reel) reel $ {}
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -54,18 +58,22 @@
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-header (content)
             div
-              {} $ :style $ {} (:padding 16)
+              {} $ :style $ {} (:padding |16px)
                 :border-bottom $ str "|1px solid " $ hsl 0 0 96
-                :text-align :center
-              <> "|FontAwesome 4.7 icons" $ {} (:font-family ui/font-fancy) (:font-size 16) (:font-weight 300)
+                :text-align |center
+              <> "|FontAwesome 4.7 icons" $ {} (:font-family ui/font-fancy) (:font-size |16px) (:font-weight |300)
               =< 16 $ {}
               input $ {}
-                :style $ merge ui/input $ {} (:width 400)
+                :style $ .merge ui/input $ {} (:width |400px)
                 :value content
                 :placeholder |Filter...
                 :on-input $ fn (e d!)
+                  hint-fn $ {} (:return 'Unit)
+                    :args $ [] (:: 'Map 'Tag 'Dynamic)
+                      :: 'Fn $ {} (:rest 'Dynamic) (:return 'Unit)
+                        :args $ [] 'Dynamic
                   d! $ schema/Op :content $ decode-map-as
-                    option:unwrap $ get e :value
+                    .unwrap $ get e :value
                     , 'String
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -79,10 +87,8 @@
                 :on-click $ fn (e d!)
                   hint-fn $ {}
                     :args $ [] (:: 'Map 'Tag 'Dynamic)
-                      :: 'Fn $ {}
-                        :args $ [] 'Enum
-                        :return 'Unit
-                        :features $ #{} :js-ffi
+                      :: 'Fn $ {} (:rest 'Dynamic) (:return 'Unit)
+                        :args $ [] 'Dynamic
                     :return 'Unit
                     :features $ #{} :js-ffi
                   copy-text! icon-name d!
@@ -90,10 +96,8 @@
                 :on-click $ fn (e d!)
                   hint-fn $ {}
                     :args $ [] (:: 'Map 'Tag 'Dynamic)
-                      :: 'Fn $ {}
-                        :args $ [] 'Enum
-                        :return 'Unit
-                        :features $ #{} :js-ffi
+                      :: 'Fn $ {} (:rest 'Dynamic) (:return 'Unit)
+                        :args $ [] 'Dynamic
                     :return 'Unit
                     :features $ #{} :js-ffi
                   copy-text! code d!
@@ -109,8 +113,11 @@
                 :text $ str "|Copied: " text
                 :token token
               js/setTimeout
-                fn () $ d! $ schema/Op :message action/remove-one
-                  {} $ :token token
+                fn ()
+                  hint-fn $ {} (:return 'Unit)
+                    :args $ []
+                    :features $ #{} :js-ffi
+                  d! $ schema/Op :message action/remove-one $ {} (:token token)
                 , 2000
             , &unit
           :examples $ []
@@ -151,12 +158,12 @@
       :defs $ {}
         'cdn? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def cdn?
-            = |true $ option:unwrap-or (get-env |cdn) |false
+            = |true $ .unwrap-or (get-env |cdn) |false
           :examples $ []
           :schema $ :: 'Bool
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -190,7 +197,7 @@
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             match
-              storage-get $ option:unwrap $ get config/site :storage-key
+              storage-get $ .unwrap $ get config/site :storage-key
               (:some raw)
                 match
                   schema/decode-store $ parse-cirru-edn raw
@@ -200,9 +207,15 @@
                     do (hud! |error |Invalid-saved-state) (raise |Invalid-saved-state)
               (:none) &unit
             render-app!
-            add-watch! *reel :changes $ fn (r p) (render-app!)
+            add-watch! *reel :changes $ fn (r p)
+              hint-fn $ {} (:return 'Unit)
+                :args $ [] (:: 'reel.typed/State 'app.schema/Op 'app.schema/Store) (:: 'reel.typed/State 'app.schema/Op 'app.schema/Store)
+              render-app!
             listen-devtools! |a dispatch!
-            set-before-unload! $ fn (event) (persist-storage!)
+            set-before-unload! $ fn (event)
+              hint-fn $ {} (:return 'Unit)
+                :args $ [] 'js-ffi.browser/EventHost
+              persist-storage!
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -210,13 +223,13 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
-            narrow-element $ option:unwrap $ query-selector |.app
+            narrow-element $ .unwrap $ query-selector |.app
           :examples $ []
           :schema $ :: 'respo.dom/DomElement
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
-              option:unwrap $ get config/site :storage-key
+              .unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -226,7 +239,10 @@
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
-                add-watch! *reel :changes $ fn (reel prev) (render-app!)
+                add-watch! *reel :changes $ fn (reel prev)
+                  hint-fn $ {} (:return 'Unit)
+                    :args $ [] (:: 'reel.typed/State 'app.schema/Op 'app.schema/Store) (:: 'reel.typed/State 'app.schema/Op 'app.schema/Store)
+                  render-app!
                 reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
@@ -239,6 +255,8 @@
           :code $ quote $ defn render-app! ()
             render! mount-target (comp-container @*reel)
               fn (op)
+                hint-fn $ {} (:return 'Unit)
+                  :args $ [] 'Dynamic
                 if (enum? op) (dispatch! op) (raise "|render dispatch expected an Enum operation")
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)

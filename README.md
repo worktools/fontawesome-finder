@@ -8,14 +8,20 @@ Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
 ### 0.30.1 使用者影响
 
-当前配对精确正式 Calcit/procs 0.30.1、Respo 0.16.124、UI 0.8.0、Reel 0.6.41、
-Message 0.0.38、js-ffi 0.2.5，传递 Router 0.8.37；不使用 alpha/hash 模块版本。
+当前配对精确正式 Calcit/procs 0.30.1、Respo 0.16.126、UI 0.8.1、Reel 0.6.42、
+Message 0.0.39、js-ffi 0.2.6，传递 Router 0.8.38，Vite 固定 8.3.3；不使用 alpha/hash 模块版本。
 升级后重启开发服务并完整刷新。Fontawesome 4.7 图标、搜索、存储 key/格式和
 通知两秒生命周期保持；UI 0.8 基础样式可能改变外观。Message 已知长文本裁切问题
 仍见 [#53](https://github.com/Respo/respo-message.calcit/issues/53)，不宣称本轮已修复。
 存档恢复先于首次渲染及保存注册；解析或 Store 解码失败会中断启动，避免原先忽略错误后
 退出时用初始状态覆盖原值。Store 解码失败会先通过 JS 引入的 `hud!` 显示页面错误，
 再中断启动；异常不替代 HUD。遇错应先备份并修复存档，不要清空数据，见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
+
+本轮迁移 12 处旧 Map/Option 调用、等价静态 CSS 值，并按真实 DOM/Message/Ref/宿主生产者
+补充回调合同。公开 Store/Op、搜索匹配、复制与两秒计时逻辑不变，unsafe 仍为 0。
+通知回调接收的真实 Map 不再重复解码，异构值边界仍保留；不新增适配 helper、预算、测试框架、
+concurrently 或校验脚本。已有恢复顺序和全部 HUD 路径保持，不将已有修复冒充本次新增。
+PR 继续只生成隔离相对资源 artifact，COS/rsync 依原策略跳过，不扩大凭据访问或部署权限。
 
 ### Development
 
