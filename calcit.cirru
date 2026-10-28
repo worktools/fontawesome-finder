@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |respo-message.calcit/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -284,6 +284,10 @@
             respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
+        'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
+          :code $ quote $ def DispatchOp (:: :unhandled)
+          :examples $ []
+          :schema $ :: 'Enum
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op (:states 'List 'Dynamic) (:content 'String) (:hydrate-storage 'app.schema/Store)
             :message 'Tag $ :: 'Map 'Tag 'Dynamic
@@ -297,16 +301,31 @@
         'decode-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-store (data)
             if (struct? data)
-              if (&struct:matches? data Store)
-                Option :some $ assert-type data 'app.schema/Store
-                Option :none
-              match (try-decode-map-as data Store)
+              struct-match data
+                Store stored $ Option :some stored
+                _ external $ if
+                  = (&struct:get-name external) :Store
+                  match
+                    try-decode-map-as (&struct:to-map external) 'app.schema/Store
+                    (:ok stored) (Option :some stored)
+                    (:err _) (Option :none)
+                  Option :none
+              match (try-decode-map-as data 'app.schema/Store)
                 (:ok stored) (Option :some stored)
                 (:err _) (Option :none)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic
             :return $ :: 'Option 'app.schema/Store
+          :tests $ [] $ %{} 'TestEntry (:name |saved-search-roundtrip)
+            :code $ quote $ let
+                original $ Store :states ({}) :content |github :messages $ {}
+              assert= (Option :some original)
+                decode-store $ parse-cirru-edn $ format-cirru-edn original
+              assert= (Option :some original) (decode-store original)
+              assert= (Option :none)
+                decode-store $ assoc (&struct:to-map original) :content 1
+            :tags $ #{} :unit
         'require-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn require-op (op)
             match op
