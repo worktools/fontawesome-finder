@@ -6,26 +6,27 @@ Fontawesome Finder
 
 Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
-### 0.30.1 使用者影响
+### 0.31.0 使用者影响
 
-当前配对精确正式 Calcit/procs 0.30.1、Respo 0.16.126、UI 0.8.1、Reel 0.6.42、
-Message 0.0.39、js-ffi 0.2.6，传递 Router 0.8.38，Vite 固定 8.3.3；不使用 alpha/hash 模块版本。
-升级后重启开发服务并完整刷新。Fontawesome 4.7 图标、搜索、存储 key/格式和
-通知两秒生命周期保持；UI 0.8 基础样式可能改变外观。Message 已知长文本裁切问题
-仍见 [#53](https://github.com/Respo/respo-message.calcit/issues/53)，不宣称本轮已修复。
-存档恢复先于首次渲染及保存注册；解析或 Store 解码失败会中断启动，避免原先忽略错误后
-退出时用初始状态覆盖原值。Store 解码失败会先通过 JS 引入的 `hud!` 显示页面错误，
-再中断启动；异常不替代 HUD。遇错应先备份并修复存档，不要清空数据，见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
+当前配对正式 Calcit/procs 0.31.0，以及已发布的 Respo 0.17.0-alpha.4、UI 0.9.0-alpha.4、
+Reel 0.7.0-alpha.4、Message 0.1.0-alpha.3、js-ffi 0.2.7，传递 Router 0.9.0-alpha.3。
+UI 依赖图仍有 alpha 版本，请重新安装依赖、重启开发服务并完整刷新。
+Fontawesome 4.7 图标、搜索、存储 key/格式和通知两秒生命周期保持；UI 样式可能变化。
+Message 已知长文本裁切问题仍见 [#53](https://github.com/Respo/respo-message.calcit/issues/53)。
 
-本轮迁移 12 处旧 Map/Option 调用、等价静态 CSS 值，并按真实 DOM/Message/Ref/宿主生产者
-补充回调合同。公开 Store/Op、搜索匹配、复制与两秒计时逻辑不变，unsafe 仍为 0。
-通知回调接收的真实 Map 不再重复解码，异构值边界仍保留；不新增适配 helper、预算、测试框架、
-concurrently 或校验脚本。已有恢复顺序和全部 HUD 路径保持，不将已有修复冒充本次新增。
-PR 继续只生成隔离相对资源 artifact，COS/rsync 依原策略跳过，不扩大凭据访问或部署权限。
+本次绑定 Respo 的入口事件类型，保留应用与 Reel 的 Enum 事件检查。
+修复 0.31 下保存搜索后刷新出现 Invalid-saved-state：本地 Store 保留，
+同名外部 Struct 转 Map 后经字段校验重建本地 Store，名称不代表名义身份。
+新增持久化往返回归，原操作合同测试保持。搜索、复制和计时函数未改。
+
+存档恢复仍先于渲染及保存注册；解析或解码失败中断启动，保留原值。
+原 JS `hud!` 提示与 reload HUD 保留，不改成仅抛出异常。
+坏存档恢复见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
+PR 只生成隔离相对资源 artifact，COS/rsync 继续按原策略跳过。
 
 ### Development
 
-Use Calcit/procs 0.30.1, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
+Use Calcit/procs 0.31.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
 Canonical source/dependencies are `calcit.cirru` and `deps.cirru`; compact/package
 snapshots are retired. Edit Calcit through the CLI.
 
@@ -42,7 +43,7 @@ yarn vite
 
 For live source edits, run `calcit -w calcit.cirru` alongside Vite.
 The app uses typed Store/Op and typed Reel; clipboard messages still expire after
-two seconds. Calcit modules use published formal releases; no commit-pinned dependency is required.
+two seconds. Calcit modules use exact published tags, including the alpha UI versions listed above.
 Persisted input is decoded at `decode-store`; its Dynamic input is an intentional
 EDN boundary, while successful decoding returns `Option<Store>`.
 
