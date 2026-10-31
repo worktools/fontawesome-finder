@@ -6,15 +6,13 @@ Fontawesome Finder
 
 Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
-### 0.31.0 使用者影响
+### 0.32.1 使用者影响
 
-当前配对正式 Calcit/procs 0.31.0，以及已发布的 Respo 0.17.0-alpha.4、UI 0.9.0-alpha.4、
-Reel 0.7.0-alpha.4、Message 0.1.0-alpha.3、js-ffi 0.2.7，传递 Router 0.9.0-alpha.3。
-UI 依赖图仍有 alpha 版本，请重新安装依赖、重启开发服务并完整刷新。
-Fontawesome 4.7 图标、搜索、存储 key/格式和通知两秒生命周期保持；UI 样式可能变化。
-Message 已知长文本裁切问题仍见 [#53](https://github.com/Respo/respo-message.calcit/issues/53)。
+本项目配对正式 Calcit / `@calcit/procs` **0.32.1**，真实严格安装 Respo **0.17.1**、UI **0.9.0**、Reel **0.7.0**、Message **0.1.0** 和 JS FFI **0.2.9** 的发布 tag。UI 正式版固定的传递 Router 仍为精确 **0.9.0-alpha.4**，不混入本地候选或 hash。请重新安装依赖、重启开发服务并完整刷新。
 
-本次绑定 Respo 的入口事件类型，保留应用与 Reel 的 Enum 事件检查。
+Fontawesome 4.7 图标、搜索、storage key/格式、通知两秒生命周期和 JS HUD 保持；UI 样式可能变化。Message 已知长文本裁切仍见 [#53](https://github.com/Respo/respo-message.calcit/issues/53)，不将正式 Git 版本当作该问题已解决。
+
+此前 0.31.0 已绑定 Respo 的入口事件类型，保留应用与 Reel 的 Enum 事件检查。
 修复 0.31 下保存搜索后刷新出现 Invalid-saved-state：本地 Store 保留，
 同名外部 Struct 转 Map 后经字段校验重建本地 Store，名称不代表名义身份。
 新增持久化往返回归，原操作合同测试保持。搜索、复制和计时函数未改。
@@ -24,9 +22,18 @@ Message 已知长文本裁切问题仍见 [#53](https://github.com/Respo/respo-m
 坏存档恢复见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
 PR 只生成隔离相对资源 artifact，COS/rsync 继续按原策略跳过。
 
+### 本轮验收
+
+官方 format 规范化 13 处旧类型标注，24 个应用定义的代码、schema、metadata 和原两项附属测试与 main 经官方 format 归一后的完整查询视图相同。
+全 222 定义、完整 strict（diagnostics 为空）、原两项测试、零废弃调用、构建与 immutable 安装通过。
+隔离页面验证 `github` 筛选出三个图标、无匹配搜索返回空列表，以及刷新恢复 `github` 搜索；
+浏览器无 warning/error。未点击复制，未将历史复制/通知计时验收算作本轮结果，也未重新验收坏存档。
+原类型门禁保留，未添加验证脚本或部署。正式依赖严格安装、immutable 及工具链配对通过；按维护者明确的一小时策略，npm 新解析显式设置 60m，无版本例外。
+官方 program-diff 暂不能读取历史 Git Snapshot 的旧类型语法（[Calcit #2503](https://github.com/calcit-lang/calcit/issues/2503)），本轮用隔离历史副本官方 format 后的逐定义视图完成对照，不绕过原门禁。
+
 ### Development
 
-Use Calcit/procs 0.31.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
+Use Calcit/procs 0.32.1, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
 Canonical source/dependencies are `calcit.cirru` and `deps.cirru`; compact/package
 snapshots are retired. Edit Calcit through the CLI.
 
@@ -43,7 +50,7 @@ yarn vite
 
 For live source edits, run `calcit -w calcit.cirru` alongside Vite.
 The app uses typed Store/Op and typed Reel; clipboard messages still expire after
-two seconds. Calcit modules use exact published tags, including the alpha UI versions listed above.
+two seconds. The declared exact module versions are published Git tags, checked through strict Caps installation.
 Persisted input is decoded at `decode-store`; its Dynamic input is an intentional
 EDN boundary, while successful decoding returns `Option<Store>`.
 
