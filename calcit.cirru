@@ -24,7 +24,7 @@
                   ->
                     decode-map-as
                       -> icons-dict (to-pairs) (&set:to-list)
-                      :: 'List $ :: 'List 'String
+                      List $ List String
                     filter $ fn (pair)
                       hint-fn $ Fn (List String) (-> Bool) (:features :js-ffi)
                       decode-map-as
@@ -45,7 +45,9 @@
                       Fn Dynamic & Dynamic $ -> Unit
                       -> Unit
                     d! $ schema/Op :message action/remove-one info
-                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
+                if dev?
+                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :none
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component) (:features :js-ffi)
         'comp-header $ %{} 'CodeEntry (:doc |)
@@ -55,7 +57,7 @@
                 :border-bottom $ str "|1px solid " $ hsl 0 0 96
                 :text-align |center
               <> "|FontAwesome 4.7 icons" $ {} (:font-family ui/font-fancy) (:font-size |16px) (:font-weight |300)
-              =< 16 $ {}
+              space-x 16
               input $ {}
                 :style $ .merge ui/input $ {} (:width |400px)
                 :value content
@@ -105,7 +107,7 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn String
-            Fn Enum (-> Unit) (:features :js-ffi)
+            Fn AnyEnum (-> Unit) (:features :js-ffi)
             -> Unit
             :features :js-ffi
         'icons-dict $ %{} 'CodeEntry (:doc |)
@@ -114,7 +116,7 @@
           :schema $ quote $ Map String String
         'load-icons $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-icons ()
-            decode-map-as (to-calcit-data icons) (:: 'Map 'String 'String)
+            decode-map-as (to-calcit-data icons) (Map String String)
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map String String
@@ -124,7 +126,7 @@
           :require (respo-ui.core :as ui)
             respo.util.format :refer $ hsl
             respo.core :refer $ defcomp >> list-> <> div span input create-element
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x
             reel.comp.reel :refer $ comp-typed-reel
             app.config :refer $ dev?
             app.schema :as schema
@@ -170,7 +172,7 @@
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Enum (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -252,15 +254,18 @@
         'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
           :code $ quote $ def DispatchOp (:: :unhandled)
           :examples $ []
-          :schema $ quote Enum
+          :schema $ quote AnyEnum
         'Op $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defenum Op (:states 'List 'Dynamic) (:content 'String) (:hydrate-storage 'app.schema/Store)
-            :message 'Tag $ quote $ Map Tag Dynamic
+          :code $ quote $ defenum Op
+            :states (List respo.schema/CoordKey) Dynamic
+            :content String
+            :hydrate-storage app.schema/Store
+            :message Tag $ Map Tag Dynamic
           :examples $ []
           :schema $ quote EnumDef
         'Store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct Store (:states 'Map) (:content 'String)
-            :messages $ quote $ Map String Dynamic
+          :code $ quote $ defstruct Store (:states Map) (:content String)
+            :messages $ Map String Dynamic
           :examples $ []
           :schema $ quote StructDef
         'decode-store $ %{} 'CodeEntry (:doc |)
@@ -295,7 +300,7 @@
             match op
               (:states cursor state)
                 Op :states
-                  decode-map-as cursor $ :: 'List 'Dynamic
+                  decode-map-as cursor $ List respo.schema/CoordKey
                   , state
               (:content text)
                 Op :content $ decode-map-as text 'String
@@ -306,10 +311,10 @@
                     raise "|Expected valid Store in :hydrate-storage operation"
               (:message tag data)
                 Op :message (decode-map-as tag 'Tag)
-                  decode-map-as data $ :: 'Map 'Tag 'Dynamic
+                  decode-map-as data $ Map Tag Dynamic
               _ $ raise "|Unknown application operation"
           :examples $ []
-          :schema $ quote $ Fn Enum (-> app.schema/Op)
+          :schema $ quote $ Fn AnyEnum (-> app.schema/Op)
           :tests $ [] $ %{} 'TestEntry (:name |preserves-valid-operation-payloads)
             :code $ quote $ do
               assert=
@@ -345,7 +350,7 @@
               (:message tag data)
                 assoc store :messages $ decode-map-as
                   update-messages (:messages store) tag data op-id op-time
-                  :: 'Map 'String 'Dynamic
+                  Map String Dynamic
               _ $ do (println "|Unknown op:" op) store
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
