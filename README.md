@@ -6,6 +6,12 @@ Fontawesome Finder
 
 Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
+### 0.37.0 使用者影响
+
+开发与构建使用 Calcit / `@calcit/procs` **0.37.0**，配对 Respo **0.19.5**、UI **0.15.2**、
+Reel **0.10.0**、Message **0.4.0**、JS FFI **0.2.13** 和传递 Router **0.12.2**。
+图标行声明名称和组件两种值，输入与复制回调使用具体类型。原图标、搜索、存档和通知流程沿用。
+
 ### 0.32.1 使用者影响
 
 本项目配对正式 Calcit / `@calcit/procs` **0.32.1**，真实严格安装 Respo **0.17.1**、UI **0.9.0**、Reel **0.7.0**、Message **0.1.0** 和 JS FFI **0.2.9** 的发布 tag。UI 正式版固定的传递 Router 仍为精确 **0.9.0-alpha.4**，不混入本地候选或 hash。请重新安装依赖、重启开发服务并完整刷新。
