@@ -6,10 +6,14 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |respo-message.calcit/
-      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
+        'IconRowValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion IconRowValue String respo.schema/Component
+          :examples $ []
+          :schema $ quote UnionDef
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -33,16 +37,18 @@
                         , 'Bool
                     map $ fn (pair)
                       hint-fn $ Fn (List String)
-                        -> $ List Dynamic
+                        -> $ List app.comp.container/IconRowValue
                       let
                           icon-name $ .unwrap $ nth pair 0
                           code $ .unwrap $ nth pair 1
-                        [] icon-name $ comp-icon icon-name code
+                        assert-type
+                          [] icon-name $ comp-icon icon-name code
+                          List app.comp.container/IconRowValue
                 comp-messages (:messages store)
                   {} $ :bottom? false
                   fn (info d!)
                     hint-fn $ Fn (Map Tag Dynamic)
-                      Fn Dynamic & Dynamic $ -> Unit
+                      Fn AnyEnum $ -> Unit
                       -> Unit
                     d! $ schema/Op :message action/remove-one info
                 if dev?
@@ -63,12 +69,10 @@
                 :value content
                 :placeholder |Filter...
                 :on-input $ fn (e d!)
-                  hint-fn $ Fn (Map Tag Dynamic)
-                    Fn Dynamic & Dynamic $ -> Unit
+                  hint-fn $ Fn respo.schema/RespoEvent
+                    Fn app.schema/Op $ -> Unit
                     -> Unit
-                  d! $ schema/Op :content $ decode-map-as
-                    .unwrap $ get e :value
-                    , 'String
+                  d! $ schema/Op :content $ decode-map-as (:value e) 'String
           :examples $ []
           :schema $ quote $ Fn String (-> respo.schema/Component)
         'comp-icon $ %{} 'CodeEntry (:doc |)
@@ -78,15 +82,15 @@
               create-element :i $ {} $ :class-name (str "|cell-icon fa fa-" code)
               span $ {} (:inner-text icon-name) (:class-name |cell-name)
                 :on-click $ fn (e d!)
-                  hint-fn $ Fn (Map Tag Dynamic)
-                    Fn Dynamic & Dynamic $ -> Unit
+                  hint-fn $ Fn respo.schema/RespoEvent
+                    Fn app.schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   copy-text! icon-name d!
               span $ {} (:inner-text code) (:class-name |cell-code)
                 :on-click $ fn (e d!)
-                  hint-fn $ Fn (Map Tag Dynamic)
-                    Fn Dynamic & Dynamic $ -> Unit
+                  hint-fn $ Fn respo.schema/RespoEvent
+                    Fn app.schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   copy-text! code d!
@@ -107,7 +111,7 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn String
-            Fn AnyEnum (-> Unit) (:features :js-ffi)
+            Fn app.schema/Op (-> Unit) (:features :js-ffi)
             -> Unit
             :features :js-ffi
         'icons-dict $ %{} 'CodeEntry (:doc |)
@@ -284,8 +288,9 @@
                 (:ok stored) (Option :some stored)
                 (:err _) (Option :none)
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             -> $ Option app.schema/Store
+            :generics Input
           :tests $ [] $ %{} 'TestEntry (:name |saved-search-roundtrip)
             :code $ quote $ let
                 original $ Store :states ({}) :content |github :messages $ {}
