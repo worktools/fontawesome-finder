@@ -129,13 +129,15 @@
         'read-toast-key $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-toast-key (info)
             let
-                token $ .unwrap-or (get info :token) false
                 id $ .unwrap-or (get info :id) false
-              if (string? token)
-                Option :some $ schema/ToastKey :token token
-                if (string? id)
-                  Option :some $ schema/ToastKey :id id
-                  Option :none
+                token $ .unwrap-or (get info :token) false
+              if (string? id)
+                Option :some $ schema/ToastKey :id id
+                if (string? token)
+                  Option :some $ schema/ToastKey :token token
+                  if token
+                    Option :some $ schema/ToastKey :legacy-token token
+                    Option :none
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Option app.schema/ToastKey
@@ -279,13 +281,15 @@
           :code $ quote $ def DispatchOp (:: :unhandled)
           :examples $ []
           :schema $ quote AnyEnum
-        'Op $ %{} 'CodeEntry (:doc |)
+        'Op $ %{} 'CodeEntry
+          :doc "|New copy notifications use :copied and :dismiss-copy. Keep :message for records created before this migration."
           :code $ quote $ defenum Op
             :states (List respo.schema/CoordKey) Dynamic
             :content String
             :hydrate-storage app.schema/Store
             :copied String String
             :dismiss-copy app.schema/ToastKey
+            :message Tag $ Map Tag Dynamic
           :examples $ []
           :schema $ quote EnumDef
         'ResolvedOp $ %{} 'CodeEntry (:doc |)
@@ -297,8 +301,9 @@
             :messages $ Map String Dynamic
           :examples $ []
           :schema $ quote StructDef
-        'ToastKey $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defenum ToastKey (:id String) (:token String)
+        'ToastKey $ %{} 'CodeEntry
+          :doc "|Manual dismissal prefers a message ID. Only restored notices without an ID may use an opaque legacy token."
+          :code $ quote $ defenum ToastKey (:id String) (:token String) (:legacy-token Dynamic)
           :examples $ []
           :schema $ quote EnumDef
         'decode-store $ %{} 'CodeEntry (:doc |)
@@ -347,6 +352,9 @@
                 Op :copied (decode-map-as text String) (decode-map-as token String)
               (:dismiss-copy key)
                 Op :dismiss-copy $ decode-map-as key app.schema/ToastKey
+              (:message tag data)
+                Op :message (decode-map-as tag Tag)
+                  decode-map-as data $ Map Tag Dynamic
               _ $ raise "|Unknown application operation"
           :examples $ []
           :schema $ quote $ Fn AnyEnum (-> app.schema/Op)
@@ -399,12 +407,41 @@
                         {} $ :id id
                       (:token token)
                         {} $ :token token
+                      (:legacy-token token)
+                        {} $ :token token
                   assoc store :messages $ decode-map-as
                     update-messages (:messages store) :message/remove-one info op-id op-time
                     Map String Dynamic
+              (:message tag data)
+                assoc store :messages $ decode-map-as
+                  update-messages (:messages store) tag data op-id op-time
+                  Map String Dynamic
               _ $ do (println "|Unknown op:" op) store
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
+          :tests $ [] $ %{} 'TestEntry (:name |legacy-toast-removal)
+            :code $ quote $ let
+                created $ updater app.schema/store
+                  app.schema/Op :message :message/create $ {} (:text |old) (:token 42)
+                  , |legacy 1
+                two $ updater created
+                  app.schema/Op :message :message/create $ {} (:text |second) (:token 42)
+                  , |second 1
+                key $ .unwrap $ app.comp.container/read-toast-key
+                  {} (:id |legacy) (:token 42)
+                token-key $ .unwrap $ app.comp.container/read-toast-key
+                  {} $ :token 42
+                removed $ updater created
+                  app.schema/Op :message :message/remove-one $ {} $ :token 42
+                  , |remove 2
+                one $ updater two (app.schema/Op :dismiss-copy key) |remove 2
+              assert= (app.schema/ToastKey :id |legacy) key
+              assert= (app.schema/ToastKey :legacy-token 42) token-key
+              assert= ({}) (:messages removed)
+              assert= 1 $ count $ :messages one
+              assert= true $ contains? (:messages one) |second
+              assert= ({})
+                :messages $ updater created (app.schema/Op :dismiss-copy token-key) |remove 2
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
