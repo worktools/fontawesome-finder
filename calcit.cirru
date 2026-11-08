@@ -50,7 +50,10 @@
                     hint-fn $ Fn (Map Tag Dynamic)
                       Fn AnyEnum $ -> Unit
                       -> Unit
-                    d! $ schema/Op :message action/remove-one info
+                    match (read-toast-key info)
+                      (:some key)
+                        d! $ schema/Op :dismiss-copy key
+                      (:none) &unit
                 if dev?
                   Option :some $ comp-typed-reel (>> states :reel) reel $ {}
                   Option :none
@@ -100,13 +103,11 @@
           :code $ quote $ defn copy-text! (text d!) (copy text)
             let
                 token $ decode-map-as (shortid/generate) 'String
-              d! $ schema/Op :message action/create $ {}
-                :text $ str "|Copied: " text
-                :token token
+              d! $ schema/Op :copied text token
               js/setTimeout
                 fn ()
                   hint-fn $ Fn (-> Unit) (:features :js-ffi)
-                  d! $ schema/Op :message action/remove-one $ {} (:token token)
+                  d! $ schema/Op :dismiss-copy $ schema/ToastKey :token token
                 , 2000
             , &unit
           :examples $ []
@@ -125,6 +126,21 @@
           :schema $ quote $ Fn
             -> $ Map String String
             :features :js-ffi
+        'read-toast-key $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-toast-key (info)
+            let
+                id $ .unwrap-or (get info :id) false
+                token $ .unwrap-or (get info :token) false
+              if (string? id)
+                Option :some $ schema/ToastKey :id id
+                if (string? token)
+                  Option :some $ schema/ToastKey :token token
+                  if token
+                    Option :some $ schema/ToastKey :legacy-token token
+                    Option :none
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag Dynamic)
+            -> $ Option app.schema/ToastKey
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
@@ -138,7 +154,6 @@
             |copy-text-to-clipboard :default copy
             |shortid :as shortid
             respo-message.comp.messages :refer $ comp-messages
-            respo-message.action :as action
             |fuzzy :as fuzzy
     'app.config $ %{} 'FileEntry
       :defs $ {}
@@ -168,11 +183,11 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            match (typed/decode-control op)
-              (:some control)
+            match (resolve-op op)
+              (reel.typed/Control control)
                 reset! *reel $ typed/apply-control updater @*reel control
-              (:none)
-                reset! *reel $ typed/record-op updater @*reel (schema/require-op op) (generate-id!)
+              (app.schema/Op action)
+                reset! *reel $ typed/record-op updater @*reel action (generate-id!)
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
@@ -234,6 +249,13 @@
                 if (enum? op) (dispatch! op) (raise "|render dispatch expected an Enum operation")
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+        'resolve-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn resolve-op (op)
+            match (typed/decode-control op)
+              (:some control) control
+              (:none) (schema/require-op op)
+          :examples $ []
+          :schema $ quote $ Fn AnyEnum (-> app.schema/ResolvedOp)
         'snippets $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn snippets () (println config/cdn?)
           :examples $ []
@@ -259,19 +281,31 @@
           :code $ quote $ def DispatchOp (:: :unhandled)
           :examples $ []
           :schema $ quote AnyEnum
-        'Op $ %{} 'CodeEntry (:doc |)
+        'Op $ %{} 'CodeEntry
+          :doc "|New copy notifications use :copied and :dismiss-copy. Keep :message for records created before this migration."
           :code $ quote $ defenum Op
             :states (List respo.schema/CoordKey) Dynamic
             :content String
             :hydrate-storage app.schema/Store
+            :copied String String
+            :dismiss-copy app.schema/ToastKey
             :message Tag $ Map Tag Dynamic
           :examples $ []
           :schema $ quote EnumDef
+        'ResolvedOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ResolvedOp app.schema/Op reel.typed/Control
+          :examples $ []
+          :schema $ quote UnionDef
         'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct Store (:states Map) (:content String)
             :messages $ Map String Dynamic
           :examples $ []
           :schema $ quote StructDef
+        'ToastKey $ %{} 'CodeEntry
+          :doc "|Manual dismissal prefers a message ID. Only restored notices without an ID may use an opaque legacy token."
+          :code $ quote $ defenum ToastKey (:id String) (:token String) (:legacy-token Dynamic)
+          :examples $ []
+          :schema $ quote EnumDef
         'decode-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-store (data)
             if (struct? data)
@@ -314,8 +348,12 @@
                   (:some stored) (Op :hydrate-storage stored)
                   (:none)
                     raise "|Expected valid Store in :hydrate-storage operation"
+              (:copied text token)
+                Op :copied (decode-map-as text String) (decode-map-as token String)
+              (:dismiss-copy key)
+                Op :dismiss-copy $ decode-map-as key app.schema/ToastKey
               (:message tag data)
-                Op :message (decode-map-as tag 'Tag)
+                Op :message (decode-map-as tag Tag)
                   decode-map-as data $ Map Tag Dynamic
               _ $ raise "|Unknown application operation"
           :examples $ []
@@ -329,9 +367,11 @@
                 require-op $ Op :content |query
               assert= (Op :hydrate-storage store)
                 require-op $ Op :hydrate-storage store
+              assert= (Op :copied |github |token)
+                require-op $ Op :copied |github |token
               assert=
-                Op :message :message/create $ {} $ :text |copied
-                require-op $ Op :message :message/create $ {} (:text |copied)
+                Op :dismiss-copy $ ToastKey :token |token
+                require-op $ Op :dismiss-copy $ ToastKey :token |token
               , &unit
             :tags $ #{} :regression
         'store $ %{} 'CodeEntry (:doc |)
@@ -352,6 +392,26 @@
                   , 'Map
               (:content content) (assoc store :content content)
               (:hydrate-storage data) data
+              (:copied text token)
+                assoc store :messages $ decode-map-as
+                  update-messages (:messages store) :message/create
+                    {}
+                      :text $ str "|Copied: " text
+                      :token token
+                    , op-id op-time
+                  Map String Dynamic
+              (:dismiss-copy key)
+                let
+                    info $ match key
+                      (:id id)
+                        {} $ :id id
+                      (:token token)
+                        {} $ :token token
+                      (:legacy-token token)
+                        {} $ :token token
+                  assoc store :messages $ decode-map-as
+                    update-messages (:messages store) :message/remove-one info op-id op-time
+                    Map String Dynamic
               (:message tag data)
                 assoc store :messages $ decode-map-as
                   update-messages (:messages store) tag data op-id op-time
@@ -359,6 +419,29 @@
               _ $ do (println "|Unknown op:" op) store
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
+          :tests $ [] $ %{} 'TestEntry (:name |legacy-toast-removal)
+            :code $ quote $ let
+                created $ updater app.schema/store
+                  app.schema/Op :message :message/create $ {} (:text |old) (:token 42)
+                  , |legacy 1
+                two $ updater created
+                  app.schema/Op :message :message/create $ {} (:text |second) (:token 42)
+                  , |second 1
+                key $ .unwrap $ app.comp.container/read-toast-key
+                  {} (:id |legacy) (:token 42)
+                token-key $ .unwrap $ app.comp.container/read-toast-key
+                  {} $ :token 42
+                removed $ updater created
+                  app.schema/Op :message :message/remove-one $ {} $ :token 42
+                  , |remove 2
+                one $ updater two (app.schema/Op :dismiss-copy key) |remove 2
+              assert= (app.schema/ToastKey :id |legacy) key
+              assert= (app.schema/ToastKey :legacy-token 42) token-key
+              assert= ({}) (:messages removed)
+              assert= 1 $ count $ :messages one
+              assert= true $ contains? (:messages one) |second
+              assert= ({})
+                :messages $ updater created (app.schema/Op :dismiss-copy token-key) |remove 2
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require
