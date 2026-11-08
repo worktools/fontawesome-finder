@@ -6,11 +6,11 @@ Fontawesome Finder
 
 Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
-### 0.37.0 使用者影响
+### 0.38.0 使用者影响
 
-开发与构建使用 Calcit / `@calcit/procs` **0.37.0**，配对 Respo **0.19.5**、UI **0.15.2**、
+开发与构建使用 Calcit / `@calcit/procs` **0.38.0**，配对 Respo **0.19.5**、UI **0.15.2**、
 Reel **0.10.0**、Message **0.4.0**、JS FFI **0.2.13** 和传递 Router **0.12.2**。
-图标行声明名称和组件两种值，输入与复制回调使用具体类型。原图标、搜索、存档和通知流程沿用。
+升级后请重新安装依赖并构建。图标、搜索和存档沿用原入口。复制通知使用具名操作，仍可点击关闭或等待两秒自动消失。
 
 ### 0.32.1 历史迁移记录
 
@@ -28,7 +28,7 @@ Fontawesome 4.7 图标、搜索、storage key/格式、通知两秒生命周期�
 坏存档恢复见 [#20](https://github.com/worktools/fontawesome-finder/issues/20)。
 PR 只生成隔离相对资源 artifact，COS/rsync 继续按原策略跳过。
 
-### 本轮验收
+### 0.32.1 验收记录
 
 官方 format 规范化 13 处旧类型标注，24 个应用定义的代码、schema、metadata 和原两项附属测试与 main 经官方 format 归一后的完整查询视图相同。
 全 222 定义、完整 strict（diagnostics 为空）、原两项测试、零废弃调用、构建与 immutable 安装通过。
@@ -39,7 +39,7 @@ PR 只生成隔离相对资源 artifact，COS/rsync 继续按原策略跳过。
 
 ### Development
 
-Use Calcit/procs 0.37.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
+Use Calcit/procs 0.38.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
 Canonical source/dependencies are `calcit.cirru` and `deps.cirru`; compact/package
 snapshots are retired. Edit Calcit through the CLI.
 
@@ -62,7 +62,7 @@ EDN boundary, while successful decoding returns `Option<Store>`.
 
 此前 0.30 迁移保留搜索、图标、存储 key/格式与消息两秒定时器。复制事件声明实际的
 Enum dispatcher / Unit 合同；状态树结果使用 Map 解码而非类型断言。
-`require-op` 在应用边界验证四种操作，复用原 `decode-store` 保留已有 Store payload，
+`require-op` 在应用边界验证具名操作，复用原 `decode-store` 保留已有 Store payload，
 不对整个 Enum 的已类型化 Struct payload 再解码。无效操作会明确报错，
 不会作为伪造的 nominal Op 写入 Reel 历史。一个附带回归覆盖这四种有效操作。
 清理三个 namespace 的旧 import `[]`，移除旧 runtime 的 npm 年龄例外，
