@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |reel.calcit/ |respo-message.calcit/
-      :type-slots $ {} $ :dispatch-op 'app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -15,7 +15,7 @@
           :examples $ []
           :schema $ quote UnionDef
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel)
+          :code $ quote $ defcomp comp-container (reel on-control)
             let
                 store $ :store reel
                 states $ :states store
@@ -48,17 +48,20 @@
                   {} $ :bottom? false
                   fn (info d!)
                     hint-fn $ Fn (Map Tag Dynamic)
-                      Fn AnyEnum $ -> Unit
+                      Fn app.schema/Op $ -> Unit
                       -> Unit
                     match (read-toast-key info)
                       (:some key)
                         d! $ schema/Op :dismiss-copy key
                       (:none) &unit
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control
                   Option :none
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
+            Fn reel.typed/Control $ -> Unit
+            -> respo.schema/Component
+            :features :js-ffi
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-header (content)
             div
@@ -183,7 +186,7 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
-            match (resolve-op op)
+            match op
               (reel.typed/Control control)
                 reset! *reel $ typed/apply-control updater @*reel control
               (app.schema/Op action)
@@ -191,7 +194,7 @@
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -209,7 +212,7 @@
             add-watch! *reel :changes $ fn (r p)
               hint-fn $ Fn (reel.typed/State app.schema/Op app.schema/Store) (reel.typed/State app.schema/Op app.schema/Store) (-> Unit)
               render-app!
-            listen-devtools! |a dispatch!
+            listen-devtools! |a on-control!
             set-before-unload! $ fn (event)
               hint-fn $ Fn js-ffi.browser/EventHost $ -> Unit
               persist-storage!
@@ -221,6 +224,10 @@
             narrow-element $ .unwrap $ query-selector |.app
           :examples $ []
           :schema $ quote respo.dom/DomElement
+        'on-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-control! (control) (dispatch! control)
+          :examples $ []
+          :schema $ quote $ Fn reel.typed/Control (-> Unit)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
@@ -243,19 +250,13 @@
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            render! mount-target (comp-container @*reel)
+            render-with! mount-target
+              fn () $ comp-container @*reel on-control!
               fn (op)
-                hint-fn $ Fn Dynamic $ -> Unit
-                if (enum? op) (dispatch! op) (raise "|render dispatch expected an Enum operation")
+                hint-fn $ Fn app.schema/Op $ -> Unit
+                dispatch! $ schema/require-op op
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
-        'resolve-op $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn resolve-op (op)
-            match (typed/decode-control op)
-              (:some control) control
-              (:none) (schema/require-op op)
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> app.schema/ResolvedOp)
         'snippets $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn snippets () (println config/cdn?)
           :examples $ []
@@ -263,7 +264,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
-            respo.core :refer $ render! clear-cache!
+            respo.core :refer $ render-with! clear-cache!
             app.comp.container :refer $ comp-container
             app.updater :refer $ updater
             app.schema :as schema
@@ -277,10 +278,6 @@
             respo.ffi.browser :refer $ narrow-element
     'app.schema $ %{} 'FileEntry
       :defs $ {}
-        'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
-          :code $ quote $ def DispatchOp (:: :unhandled)
-          :examples $ []
-          :schema $ quote AnyEnum
         'Op $ %{} 'CodeEntry
           :doc "|New copy notifications use :copied and :dismiss-copy. Keep :message for records created before this migration."
           :code $ quote $ defenum Op
@@ -357,7 +354,7 @@
                   decode-map-as data $ Map Tag Dynamic
               _ $ raise "|Unknown application operation"
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> app.schema/Op)
+          :schema $ quote $ Fn app.schema/Op (-> app.schema/Op)
           :tests $ [] $ %{} 'TestEntry (:name |preserves-valid-operation-payloads)
             :code $ quote $ do
               assert=
