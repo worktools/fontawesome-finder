@@ -6,10 +6,10 @@ Fontawesome Finder
 
 Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
-### 0.38.0 使用者影响
+### 0.40.0 使用者影响
 
-开发与构建使用 Calcit / `@calcit/procs` **0.38.0**，配对 Respo **0.19.5**、UI **0.15.2**、
-Reel **0.10.0**、Message **0.4.0**、JS FFI **0.2.13** 和传递 Router **0.12.2**。
+开发与构建使用 Calcit / `@calcit/procs` **0.40.0**，配对 Respo **0.19.5**、UI **0.15.2**、
+Reel **0.11.0**、Message **0.4.0**、JS FFI **0.2.13** 和传递 Router **0.12.2**。
 升级后请重新安装依赖并构建。图标、搜索和存档沿用原入口。复制通知使用具名操作，仍可点击关闭或等待两秒自动消失。
 
 ### 0.32.1 历史迁移记录
@@ -39,7 +39,7 @@ PR 只生成隔离相对资源 artifact，COS/rsync 继续按原策略跳过。
 
 ### Development
 
-Use Calcit/procs 0.38.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
+Use Calcit/procs 0.40.0, Caps 0.1.1, Node.js 24 and Yarn 4.18.0.
 Canonical source/dependencies are `calcit.cirru` and `deps.cirru`; compact/package
 snapshots are retired. Edit Calcit through the CLI.
 

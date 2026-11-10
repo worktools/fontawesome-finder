@@ -26,24 +26,18 @@
                   {} $ :style $ .merge ui/flex
                     {} (:flex-wrap |wrap) (:padding "|32px 16px 80px 16px") (:overflow |auto) (:text-align |center)
                   ->
-                    decode-map-as
-                      -> icons-dict (to-pairs) (&set:to-list)
-                      List $ List String
+                    &set:to-list $ to-pairs icons-dict
                     filter $ fn (pair)
-                      hint-fn $ Fn (List String) (-> Bool) (:features :js-ffi)
-                      decode-map-as
-                        fuzzy/test (:content store)
-                          .unwrap $ nth pair 1
+                      hint-fn $ Fn (Tuple String String) (-> Bool) (:features :js-ffi)
+                      let[] (_name code) pair $ decode-map-as
+                        fuzzy/test (:content store) code
                         , 'Bool
                     map $ fn (pair)
-                      hint-fn $ Fn (List String)
+                      hint-fn $ Fn (Tuple String String)
                         -> $ List app.comp.container/IconRowValue
-                      let
-                          icon-name $ .unwrap $ nth pair 0
-                          code $ .unwrap $ nth pair 1
-                        assert-type
-                          [] icon-name $ comp-icon icon-name code
-                          List app.comp.container/IconRowValue
+                      let[] (icon-name code) pair $ assert-type
+                        [] icon-name $ comp-icon icon-name code
+                        List app.comp.container/IconRowValue
                 comp-messages (:messages store)
                   {} $ :bottom? false
                   fn (info d!)
