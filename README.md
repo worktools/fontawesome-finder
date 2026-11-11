@@ -6,9 +6,9 @@ Fontawesome Finder
 
 Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
-### 0.41.0 使用者影响
+### 0.41.1 使用者影响
 
-开发与构建使用 Calcit / `@calcit/procs` **0.41.0**，配对 Respo **0.19.5**、UI **0.15.2**、
+开发与构建使用 Calcit / `@calcit/procs` **0.41.1**，配对 Respo **0.19.5**、UI **0.15.2**、
 Reel **0.11.0**、Message **0.4.0**、JS FFI **0.2.13** 和传递 Router **0.12.2**。
 升级后请重新安装依赖并构建。图标、搜索和存档沿用原入口。图标列表使用具名 `ChildPair`，沿用原图标名称作为渲染键。复制通知使用具名操作，仍可点击关闭或等待两秒自动消失。
 
