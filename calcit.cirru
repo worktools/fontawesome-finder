@@ -35,7 +35,7 @@
                   {} $ :bottom? false
                   fn (info d!)
                     hint-fn $ Fn (Map Tag Dynamic)
-                      Fn app.schema/Op $ -> Unit
+                      Fn schema/Op $ -> Unit
                       -> Unit
                     match (read-toast-key info)
                       (:some key)
@@ -63,7 +63,7 @@
                 :placeholder |Filter...
                 :on-input $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn app.schema/Op $ -> Unit
+                    Fn schema/Op $ -> Unit
                     -> Unit
                   d! $ schema/Op :content $ decode-map-as (:value e) 'String
           :examples $ []
@@ -76,14 +76,14 @@
               span $ {} (:inner-text icon-name) (:class-name |cell-name)
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn app.schema/Op $ -> Unit
+                    Fn schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   copy-text! icon-name d!
               span $ {} (:inner-text code) (:class-name |cell-code)
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn app.schema/Op $ -> Unit
+                    Fn schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   copy-text! code d!
@@ -119,18 +119,26 @@
         'read-toast-key $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-toast-key (info)
             let
-                id $ .unwrap-or (get info :id) false
-                token $ .unwrap-or (get info :token) false
-              if (string? id)
-                Some $ schema/ToastKey :id id
-                if (string? token)
-                  Some $ schema/ToastKey :token token
-                  if token
-                    Some $ schema/ToastKey :legacy-token token
-                    , None
+                message-id $ match (get info :id)
+                  (:some id)
+                    if (string? id) (Some id) None
+                  (:none) None
+              match message-id
+                (:some id)
+                  Some $ schema/ToastKey :id id
+                (:none)
+                  match (get info :token)
+                    (:some token)
+                      if (string? token)
+                        Some $ schema/ToastKey :token token
+                        if token
+                          Some $ schema/ToastKey :legacy-token token
+                          , None
+                    (:none) None
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             -> $ Option schema/ToastKey
+            :generics V
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
@@ -197,7 +205,7 @@
               (:none) &unit
             render-app!
             add-watch! *reel :changes $ fn (r p)
-              hint-fn $ Fn (reel.typed/State app.schema/Op app.schema/Store) (reel.typed/State app.schema/Op app.schema/Store) (-> Unit)
+              hint-fn $ Fn (typed/State schema/Op schema/Store) (typed/State schema/Op schema/Store) (-> Unit)
               render-app!
             listen-devtools! |a on-control!
             set-before-unload! $ fn (event)
@@ -227,7 +235,7 @@
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (reel prev)
-                  hint-fn $ Fn (reel.typed/State app.schema/Op app.schema/Store) (reel.typed/State app.schema/Op app.schema/Store) (-> Unit)
+                  hint-fn $ Fn (typed/State schema/Op schema/Store) (typed/State schema/Op schema/Store) (-> Unit)
                   render-app!
                 reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
@@ -240,7 +248,7 @@
             render-with! mount-target
               fn () $ comp-container @*reel on-control!
               fn (op)
-                hint-fn $ Fn app.schema/Op $ -> Unit
+                hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! $ schema/require-op op
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
