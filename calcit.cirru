@@ -46,9 +46,9 @@
                   , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State schema/Op schema/Store)
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
-            :features :js-ffi
+            :features :io :js-ffi :state
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-header (content)
             div
@@ -407,9 +407,8 @@
                 assoc store :messages $ decode-map-as
                   update-messages (:messages store) tag data op-id op-time
                   Map String Dynamic
-              _ $ do (println "|Unknown op:" op) store
           :examples $ []
-          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store) (:features :io)
+          :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
           :tests $ [] $ %{} 'TestEntry (:name |legacy-toast-removal)
             :code $ quote $ let
                 created $ updater app.schema/store
