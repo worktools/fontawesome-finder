@@ -8,8 +8,8 @@ Demo http://repo.tiye.me/chenyong/fontawesome-finder/
 
 ### 0.44.0 使用者影响
 
-开发与构建使用 Calcit / `@calcit/procs` **0.44.0**，配对 Respo **0.19.12**、UI **0.15.6**、
-Reel **0.11.4**、Message **0.4.4**、JS FFI **0.2.18** 和传递 Router **0.12.10**。
+开发与构建使用 Calcit / `@calcit/procs` **0.44.0**，配对 Respo **0.19.13**、UI **0.15.7**、
+Reel **0.11.5**、Message **0.4.5**、JS FFI **0.2.19** 和传递 Router **0.12.11**。
 升级后请重新安装依赖并构建。图标、搜索和存档沿用原入口。图标列表使用具名 `ChildPair`，沿用原图标名称作为渲染键。复制通知使用具名操作，仍可点击关闭或等待两秒自动消失。
 
 ### 0.32.1 历史迁移记录
