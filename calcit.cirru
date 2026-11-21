@@ -197,7 +197,9 @@
               storage-get $ .unwrap $ get config/site :storage-key
               (:some raw)
                 match
-                  schema/decode-store $ parse-cirru-edn raw
+                  try
+                    schema/decode-store $ parse-cirru-edn raw
+                    fn (_error) None
                   (:some stored)
                     dispatch! $ schema/Op :hydrate-storage stored
                   (:none)
