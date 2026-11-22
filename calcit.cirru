@@ -10,10 +10,6 @@
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
-        'IconRowValue $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defunion IconRowValue String respo.schema/Component
-          :examples $ []
-          :schema $ quote UnionDef
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel on-control)
             let
@@ -22,7 +18,7 @@
               div
                 {} $ :style $ .merge ui/global ui/fullscreen ui/column
                 comp-header $ :content store
-                list->
+                keyed->
                   {} $ :style $ .merge ui/flex
                     {} (:flex-wrap |wrap) (:padding "|32px 16px 80px 16px") (:overflow |auto) (:text-align |center)
                   ->
@@ -33,29 +29,26 @@
                         fuzzy/test (:content store) code
                         , 'Bool
                     map $ fn (pair)
-                      hint-fn $ Fn (Tuple String String)
-                        -> $ List app.comp.container/IconRowValue
-                      let[] (icon-name code) pair $ assert-type
-                        [] icon-name $ comp-icon icon-name code
-                        List app.comp.container/IconRowValue
+                      hint-fn $ Fn (Tuple String String) (-> respo.schema/ChildPair)
+                      let[] (icon-name code) pair $ keyed-component icon-name $ comp-icon icon-name code
                 comp-messages (:messages store)
                   {} $ :bottom? false
                   fn (info d!)
                     hint-fn $ Fn (Map Tag Dynamic)
-                      Fn app.schema/Op $ -> Unit
+                      Fn schema/Op $ -> Unit
                       -> Unit
                     match (read-toast-key info)
                       (:some key)
                         d! $ schema/Op :dismiss-copy key
                       (:none) &unit
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control
-                  Option :none
+                  Some $ comp-typed-reel (>> states :reel) reel ({}) on-control
+                  , None
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.schema/Op app.schema/Store)
-            Fn reel.typed/Control $ -> Unit
+          :schema $ quote $ Fn (reel.typed/State schema/Op schema/Store)
+            Fn reel.typed/Control (-> Unit) (:features :io :state)
             -> respo.schema/Component
-            :features :js-ffi
+            :features :io :js-ffi :state
         'comp-header $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-header (content)
             div
@@ -70,7 +63,7 @@
                 :placeholder |Filter...
                 :on-input $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn app.schema/Op $ -> Unit
+                    Fn schema/Op $ -> Unit
                     -> Unit
                   d! $ schema/Op :content $ decode-map-as (:value e) 'String
           :examples $ []
@@ -83,14 +76,14 @@
               span $ {} (:inner-text icon-name) (:class-name |cell-name)
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn app.schema/Op $ -> Unit
+                    Fn schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   copy-text! icon-name d!
               span $ {} (:inner-text code) (:class-name |cell-code)
                 :on-click $ fn (e d!)
                   hint-fn $ Fn respo.schema/RespoEvent
-                    Fn app.schema/Op $ -> Unit
+                    Fn schema/Op $ -> Unit
                     -> Unit
                     :features :js-ffi
                   copy-text! code d!
@@ -109,7 +102,7 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn String
-            Fn app.schema/Op (-> Unit) (:features :js-ffi)
+            Fn schema/Op (-> Unit) (:features :js-ffi)
             -> Unit
             :features :js-ffi
         'icons-dict $ %{} 'CodeEntry (:doc |)
@@ -126,23 +119,31 @@
         'read-toast-key $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-toast-key (info)
             let
-                id $ .unwrap-or (get info :id) false
-                token $ .unwrap-or (get info :token) false
-              if (string? id)
-                Option :some $ schema/ToastKey :id id
-                if (string? token)
-                  Option :some $ schema/ToastKey :token token
-                  if token
-                    Option :some $ schema/ToastKey :legacy-token token
-                    Option :none
+                message-id $ match (get info :id)
+                  (:some id)
+                    if (string? id) (Some id) None
+                  (:none) None
+              match message-id
+                (:some id)
+                  Some $ schema/ToastKey :id id
+                (:none)
+                  match (get info :token)
+                    (:some token)
+                      if (string? token)
+                        Some $ schema/ToastKey :token token
+                        if token
+                          Some $ schema/ToastKey :legacy-token token
+                          , None
+                    (:none) None
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
-            -> $ Option app.schema/ToastKey
+          :schema $ quote $ Fn (Map Tag V)
+            -> $ Option schema/ToastKey
+            :generics V
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
             respo.util.format :refer $ hsl
-            respo.core :refer $ defcomp >> list-> <> div span input create-element
+            respo.core :refer $ defcomp >> keyed-> keyed-component <> div span input create-element
             respo.comp.space :refer $ space-x
             reel.comp.reel :refer $ comp-typed-reel
             app.config :refer $ dev?
@@ -176,7 +177,7 @@
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ quote $ Ref (reel.typed/State app.schema/Op app.schema/Store)
+          :schema $ quote $ Ref (typed/State schema/Op schema/Store)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             when config/dev? $ println |Dispatch: op
@@ -188,7 +189,7 @@
                   :timestamp $ date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ quote $ Fn app.schema/ResolvedOp (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn schema/ResolvedOp (-> Unit) (:features :io :js-ffi :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -196,7 +197,9 @@
               storage-get $ .unwrap $ get config/site :storage-key
               (:some raw)
                 match
-                  schema/decode-store $ parse-cirru-edn raw
+                  try
+                    schema/decode-store $ parse-cirru-edn raw
+                    fn (_error) None
                   (:some stored)
                     dispatch! $ schema/Op :hydrate-storage stored
                   (:none)
@@ -204,7 +207,7 @@
               (:none) &unit
             render-app!
             add-watch! *reel :changes $ fn (r p)
-              hint-fn $ Fn (reel.typed/State app.schema/Op app.schema/Store) (reel.typed/State app.schema/Op app.schema/Store) (-> Unit)
+              hint-fn $ Fn (typed/State schema/Op schema/Store) (typed/State schema/Op schema/Store) (-> Unit)
               render-app!
             listen-devtools! |a on-control!
             set-before-unload! $ fn (event)
@@ -212,7 +215,7 @@
               persist-storage!
             println "|App started."
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def mount-target
             narrow-element $ .unwrap $ query-selector |.app
@@ -221,40 +224,40 @@
         'on-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control! (control) (dispatch! control)
           :examples $ []
-          :schema $ quote $ Fn reel.typed/Control (-> Unit)
+          :schema $ quote $ Fn typed/Control (-> Unit) (:features :io :state)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             storage-set!
               .unwrap $ get config/site :storage-key
               format-cirru-edn $ :store @*reel
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
               do (remove-watch! *reel :changes) (clear-cache!)
                 add-watch! *reel :changes $ fn (reel prev)
-                  hint-fn $ Fn (reel.typed/State app.schema/Op app.schema/Store) (reel.typed/State app.schema/Op app.schema/Store) (-> Unit)
+                  hint-fn $ Fn (typed/State schema/Op schema/Store) (typed/State schema/Op schema/Store) (-> Unit)
                   render-app!
                 reset! *reel $ typed/refresh updater @*reel schema/store
                 hud! |ok~ |Ok
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render-with! mount-target
               fn () $ comp-container @*reel on-control!
               fn (op)
-                hint-fn $ Fn app.schema/Op $ -> Unit
+                hint-fn $ Fn schema/Op $ -> Unit
                 dispatch! $ schema/require-op op
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'snippets $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn snippets () (println config/cdn?)
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -301,29 +304,28 @@
           :code $ quote $ defn decode-store (data)
             if (struct? data)
               struct-match data
-                Store stored $ Option :some stored
+                Store stored $ Some stored
                 _ external $ if
                   = (&struct:get-name external) :Store
                   match
                     try-decode-map-as (&struct:to-map external) 'app.schema/Store
-                    (:ok stored) (Option :some stored)
-                    (:err _) (Option :none)
-                  Option :none
+                    (:ok stored) (Some stored)
+                    (:err _) None
+                  , None
               match (try-decode-map-as data 'app.schema/Store)
-                (:ok stored) (Option :some stored)
-                (:err _) (Option :none)
+                (:ok stored) (Some stored)
+                (:err _) None
           :examples $ []
           :schema $ quote $ Fn Input
-            -> $ Option app.schema/Store
+            -> $ Option Store
             :generics Input
           :tests $ [] $ %{} 'TestEntry (:name |saved-search-roundtrip)
             :code $ quote $ let
                 original $ Store :states ({}) :content |github :messages $ {}
-              assert= (Option :some original)
+              assert= (Some original)
                 decode-store $ parse-cirru-edn $ format-cirru-edn original
-              assert= (Option :some original) (decode-store original)
-              assert= (Option :none)
-                decode-store $ assoc (&struct:to-map original) :content 1
+              assert= (Some original) (decode-store original)
+              assert= None $ decode-store $ assoc (&struct:to-map original) :content 1
             :tags $ #{} :unit
         'require-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn require-op (op)
@@ -348,7 +350,7 @@
                   decode-map-as data $ Map Tag Dynamic
               _ $ raise "|Unknown application operation"
           :examples $ []
-          :schema $ quote $ Fn app.schema/Op (-> app.schema/Op)
+          :schema $ quote $ Fn Op (-> Op)
           :tests $ [] $ %{} 'TestEntry (:name |preserves-valid-operation-payloads)
             :code $ quote $ do
               assert=
@@ -369,7 +371,7 @@
           :code $ quote $ def store
             Store :states ({}) :content | :messages $ {}
           :examples $ []
-          :schema $ quote app.schema/Store
+          :schema $ quote Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
     'app.updater $ %{} 'FileEntry
@@ -407,7 +409,6 @@
                 assoc store :messages $ decode-map-as
                   update-messages (:messages store) tag data op-id op-time
                   Map String Dynamic
-              _ $ do (println "|Unknown op:" op) store
           :examples $ []
           :schema $ quote $ Fn app.schema/Store app.schema/Op String Number (-> app.schema/Store)
           :tests $ [] $ %{} 'TestEntry (:name |legacy-toast-removal)
