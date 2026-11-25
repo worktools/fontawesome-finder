@@ -131,14 +131,25 @@
                     (:some token)
                       if (string? token)
                         Some $ schema/ToastKey :token token
-                        if token
-                          Some $ schema/ToastKey :legacy-token token
-                          , None
+                        if
+                          or (nil? token) (identical? false token)
+                          , None $ Some $ schema/ToastKey :legacy-token token
                     (:none) None
           :examples $ []
           :schema $ quote $ Fn (Map Tag V)
             -> $ Option schema/ToastKey
             :generics V
+          :tests $ [] $ %{} 'TestEntry (:name |legacy-token-truthiness)
+            :code $ quote $ do
+              assert= None $ read-toast-key $ {} (:token nil)
+              assert= None $ read-toast-key $ {} (:token false)
+              assert=
+                Some $ schema/ToastKey :legacy-token 0
+                read-toast-key $ {} $ :token 0
+              assert=
+                Some $ schema/ToastKey :token |
+                read-toast-key $ {} $ :token |
+            :tags $ #{} :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.comp.container
           :require (respo-ui.core :as ui)
